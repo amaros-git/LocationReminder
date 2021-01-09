@@ -11,11 +11,8 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Toast
 import androidx.core.content.ContextCompat.checkSelfPermission
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
-import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -30,7 +27,6 @@ import com.udacity.location_reminder.databinding.FragmentSelectLocationBinding
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
-import org.koin.androidx.scope.currentScope
 import java.util.*
 
 
@@ -44,7 +40,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private lateinit var locationManager: LocationManager
 
-    private var selectedLocation: LatLng? = null
+    private var selectedLocationLatLng: LatLng? = null
+    private var selectedLocationName = "Location"
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
@@ -79,20 +76,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     }
 
     private fun onLocationSelected() {
-        if (null == selectedLocation) {
-            _viewModel.showToast.value = "Please select location"
-            return
-        } else {
-            _viewModel.latitude.value = selectedLocation!!.latitude
-            _viewModel.longitude.value = selectedLocation!!.longitude
+        if (validateSelectedLocation()) {
+            _viewModel.latitude.value = selectedLocationLatLng!!.latitude
+            _viewModel.longitude.value = selectedLocationLatLng!!.longitude
+            _viewModel.reminderSelectedLocationStr.value = selectedLocationName
 
             _viewModel.navigationCommand.value = NavigationCommand.Back
         }
-
-
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
 
     }
 
@@ -167,7 +157,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
             )
             poiMarker.showInfoWindow()
 
-            selectedLocation = poi.latLng
+            selectedLocationLatLng = poi.latLng
+            selectedLocationName = poi.name
         }
     }
 
@@ -190,7 +181,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
 
-            selectedLocation = latLng
+            selectedLocationLatLng = latLng
+            selectedLocationName = "Location" //TODO get near city name ?
         }
     }
 
@@ -203,7 +195,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private fun isPermissionGranted(): Boolean {
         return checkSelfPermission(
-            context!!,
+            requireContext(),
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
@@ -224,10 +216,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     override fun onLocationChanged(location: Location) {
         Log.d(TAG, "onLocationChanged called")
         val latLng = LatLng(location.latitude, location.longitude)
-        val zoomLevel = 20.0f
+        val zoomLevel = 10.0f
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
 
         //unregister, we need the current location only once
         locationManager.removeUpdates(this)
+    }
+
+    private fun validateSelectedLocation(): Boolean {
+        if (null == selectedLocationLatLng) {
+            _viewModel.showToast.value = "Please select location"
+            return false
+        }
+        return true
     }
 }
