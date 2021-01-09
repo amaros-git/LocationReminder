@@ -11,9 +11,11 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -23,10 +25,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
+import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.databinding.FragmentSelectLocationBinding
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import org.koin.androidx.scope.currentScope
 import java.util.*
 
 
@@ -40,8 +44,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private lateinit var locationManager: LocationManager
 
+    private var selectedLocation: LatLng? = null
+
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
+
     private lateinit var binding: FragmentSelectLocationBinding
 
 
@@ -61,25 +68,32 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         mapFragment.getMapAsync(this)
 
         locationManager = activity!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
         registerLocationListener()
 
-//        TODO: add the map setup implementation
-//        TODO: zoom to the user location after taking his permission
-//        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
 
-//        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
-
+        binding.saveLocationButton.setOnClickListener {
+            onLocationSelected()
+        }
 
         return binding.root
     }
 
     private fun onLocationSelected() {
+        if (null == selectedLocation) {
+            _viewModel.showToast.value = "Please select location"
+            return
+        } else {
+            _viewModel.latitude.value = selectedLocation!!.latitude
+            _viewModel.longitude.value = selectedLocation!!.longitude
+
+            _viewModel.navigationCommand.value = NavigationCommand.Back
+        }
+
+
         //        TODO: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
+
     }
 
 
@@ -111,12 +125,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     @SuppressLint("MissingPermission")
     private fun registerLocationListener() {
         if (isPermissionGranted()) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 15f, this)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 10f, this)
         } else {
             requestForPermission()
         }
     }
 
+    //TODO: add style to the map
     override fun onMapReady(googleMap: GoogleMap) {
         Log.d(TAG, "onMapReady called")
         map = googleMap
@@ -151,13 +166,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
                     .title(poi.name)
             )
             poiMarker.showInfoWindow()
+
+            selectedLocation = poi.latLng
         }
     }
 
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
             Log.d(TAG, "clicked on $latLng")
-            // A Snippet is Additional text that's displayed below the title.
+
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
@@ -172,6 +189,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
                     .snippet(snippet)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
+
+            selectedLocation = latLng
         }
     }
 
@@ -205,9 +224,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     override fun onLocationChanged(location: Location) {
         Log.d(TAG, "onLocationChanged called")
         val latLng = LatLng(location.latitude, location.longitude)
-        val zoomLevel = 10.0f
+        val zoomLevel = 20.0f
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
 
+        //unregister, we need the current location only once
         locationManager.removeUpdates(this)
     }
 }
