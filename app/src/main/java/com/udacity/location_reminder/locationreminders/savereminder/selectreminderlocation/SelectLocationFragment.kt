@@ -18,6 +18,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.udacity.location_reminder.R
@@ -26,6 +27,7 @@ import com.udacity.location_reminder.databinding.FragmentSelectLocationBinding
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListener {
@@ -109,7 +111,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     @SuppressLint("MissingPermission")
     private fun registerLocationListener() {
         if (isPermissionGranted()) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 10f, this)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 15f, this)
         } else {
             requestForPermission()
         }
@@ -121,30 +123,55 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
         enableMyLocation()
 
-       /* val latitude = 56.94565839967705
-        val longitude = 24.246700927752364
-        val homeLatLng = LatLng(latitude, longitude)
-        val zoomLevel = 15f
+        with(map.uiSettings) {
+            isZoomControlsEnabled = true
+            isCompassEnabled = true
+        }
 
-        map.addMarker(MarkerOptions().position(homeLatLng).title("Home sweet home"))
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))*/
-
-       /* setMapLongClick(map)
+        setMapLongClick(map)
 
         setPoiClick(map)
-
-        setMapStyle(map)*/
-
-
     }
 
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
             map.isMyLocationEnabled = true
-        }
-        else {
+        } else {
             requestForPermission()
+        }
+    }
+
+    private fun setPoiClick(map: GoogleMap) {
+        map.setOnPoiClickListener { poi ->
+            Log.d(TAG, "clicked on Poi with ${poi.latLng}")
+            val poiMarker = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )
+            poiMarker.showInfoWindow()
+        }
+    }
+
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            Log.d(TAG, "clicked on $latLng")
+            // A Snippet is Additional text that's displayed below the title.
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
+
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(getString(R.string.dropped_pin))
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+            )
         }
     }
 
@@ -155,7 +182,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         )
     }
 
-    private fun isPermissionGranted() : Boolean {
+    private fun isPermissionGranted(): Boolean {
         return checkSelfPermission(
             context!!,
             Manifest.permission.ACCESS_FINE_LOCATION
