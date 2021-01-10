@@ -45,7 +45,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         //Get the local repository instance
         val remindersLocalRepository: RemindersLocalRepository by inject()
 //        Interaction to the repository has to be through a coroutine scope
-        CoroutineScope(coroutineContext).launch(SupervisorJob()) {
+        CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
             //get the reminder with the request id
             val result = remindersLocalRepository.getReminder(requestId)
             if (result is Result.Success<ReminderDTO>) {

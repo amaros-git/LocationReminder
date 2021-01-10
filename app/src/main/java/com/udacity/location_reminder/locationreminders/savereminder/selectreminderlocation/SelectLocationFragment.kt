@@ -11,6 +11,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import androidx.annotation.NonNull
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -92,7 +93,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        // TODO: Change the map type based on the user's selection.
         R.id.normal_map -> {
             map.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
@@ -221,6 +221,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
         //unregister, we need the current location only once
         locationManager.removeUpdates(this)
+    }
+
+    override fun onProviderEnabled(provider: String) {
+        Log.d(TAG, "onProviderEnabled called")
+    }
+
+    override fun onProviderDisabled(provider: String) {
+        Log.d(TAG, "onProviderDisabled called")
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        Log.d(TAG, "onStatusChanged called")
     }
 
     private fun validateSelectedLocation(): Boolean {
