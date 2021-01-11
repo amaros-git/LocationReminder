@@ -1,25 +1,55 @@
 package com.udacity.location_reminder.locationreminders.savereminder
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.app.PendingIntent
+import android.content.Intent
+import android.util.Log
+import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseViewModel
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class SaveReminderViewModel(val app: Application, private val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
+
+    private val TAG = SaveReminderViewModel::class.java.simpleName
+
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()
     val reminderSelectedLocationStr = MutableLiveData<String>()
     val selectedPOI = MutableLiveData<PointOfInterest>()
     val latitude = MutableLiveData<Double>()
     val longitude = MutableLiveData<Double>()
+
+    private lateinit var geofencingClient: GeofencingClient //TODO change to lazy
+
+    // A PendingIntent for the Broadcast Receiver that handles geofence transitions.
+    private val geofencePendingIntent: PendingIntent by lazy {
+        val intent = Intent(app, GeofenceBroadcastReceiver::class.java)
+        intent.action = SaveReminderFragment.ACTION_GEOFENCE_EVENT
+        // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
+        // addGeofences() and removeGeofences().
+        PendingIntent.getBroadcast(app, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    init {
+        geofencingClient = LocationServices.getGeofencingClient(app)
+    }
 
     /**
      * Clear the live data objects to start fresh next time the view model gets called
@@ -33,19 +63,81 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
         longitude.value = null
     }
 
-    /**
-     * Validate the entered data then saves the reminder data to the DataSource
-     */
-    fun validateAndSaveReminder(reminderData: ReminderDataItem) {
-        if (validateEnteredData(reminderData)) {
-            saveReminder(reminderData)
+    @SuppressLint("MissingPermission")
+    fun saveGeofence(id: String, lat: Double, long: Double) {
+        // Build the Geofence Object
+        val geofence = Geofence.Builder()
+            // Set the request ID, string to identify the geofence.
+            .setRequestId(id)
+            // Set the circular region of this geofence.
+            .setCircularRegion(lat, long, GEOFENCE_RADIUS_IN_METERS)
+            // Set the expiration duration of the geofence. This geofence gets
+            // automatically removed after this period of time.
+            .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+            // Set the transition types of interest. Alerts are only generated for these
+            // transition. We track entry and exit transitions in this sample.
+            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+            .build()
+
+        // Build the geofence request
+        val geofencingRequest = GeofencingRequest.Builder()
+            // The INITIAL_TRIGGER_ENTER flag indicates that geofencing service should trigger a
+            // GEOFENCE_TRANSITION_ENTER notification when the geofence is added and if the device
+            // is already inside that geofence.
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            // Add the geofences to be monitored by geofencing service.
+            .addGeofence(geofence)
+            .build()
+
+        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                Toast.makeText(
+                    app, R.string.reminer_added,
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+                Log.d(TAG, "Added ${geofence.requestId}")
+            }
+            addOnFailureListener {
+                Toast.makeText(
+                    app,
+                    R.string.reminder_not_added, //TODO change to SnackBar with Cancel and Try again
+                    Toast.LENGTH_SHORT
+                ).show()
+                if ((it.message != null)) {
+                    Log.w(TAG, it.message!!)
+                }
+                Log.e(TAG, "Failed to add geofence with id ${geofence.requestId}")
+            }
         }
     }
+
+    fun removeGeofences() {
+        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                // Geofences removed
+                Log.d(TAG, "Successfully removed all geofences")
+            }
+            addOnFailureListener {
+                // Failed to remove geofences
+                Log.d(TAG, "Failed to remove all geofences")
+            }
+        }
+    }
+
+  /*  //TODO there must be better solution ...
+    *//**
+     * I need somehow to remove previous geofences. I don't want to add
+     * additional dependencies to GeofenceTransitionsJobIntentService. So:
+     * Fragment must call it on onStar providing list of ids retrieved from database
+     *//*
+    fun refreshGeofences (geofences: List<String>)*/
 
     /**
      * Save the reminder to the data source
      */
-    fun saveReminder(reminderData: ReminderDataItem) {
+    fun saveReminderAndNavigateBack(reminderData: ReminderDataItem) {
+        Log.d(TAG, "saveReminder called")
         showLoading.value = true
         viewModelScope.launch {
             dataSource.saveReminder(
@@ -78,11 +170,9 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
             return false
         }
 
-        if ((null == reminderData.latitude) || (null == reminderData.longitude)) {
-            showSnackBarInt.value = R.string.err_wrong_location
-            return false
-        }
-
         return true
     }
 }
+
+private val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
+private const val GEOFENCE_RADIUS_IN_METERS = 100f

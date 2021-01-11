@@ -28,6 +28,7 @@ import com.udacity.location_reminder.databinding.FragmentSelectLocationBinding
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import org.koin.core.context.unloadKoinModules
 import java.util.*
 
 
@@ -70,16 +71,20 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
 
         binding.saveLocationButton.setOnClickListener {
-            onLocationSelected()
+            if (null == selectedLocationLatLng) {
+                _viewModel.showToast.value = "Please select location"
+            } else {
+                onLocationSelected(selectedLocationLatLng!!)
+            }
         }
 
         return binding.root
     }
 
-    private fun onLocationSelected() {
+    private fun onLocationSelected(location: LatLng) {
         if (validateSelectedLocation()) {
-            _viewModel.latitude.value = selectedLocationLatLng!!.latitude
-            _viewModel.longitude.value = selectedLocationLatLng!!.longitude
+            _viewModel.latitude.value = location.latitude
+            _viewModel.longitude.value = location.longitude
             _viewModel.reminderSelectedLocationStr.value = selectedLocationName
 
             _viewModel.navigationCommand.value = NavigationCommand.Back
@@ -216,7 +221,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     override fun onLocationChanged(location: Location) {
         Log.d(TAG, "onLocationChanged called")
         val latLng = LatLng(location.latitude, location.longitude)
-        val zoomLevel = 10.0f
+        val zoomLevel = 12.0f
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
 
         //unregister, we need the current location only once

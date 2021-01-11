@@ -1,5 +1,6 @@
 package com.udacity.location_reminder.locationreminders.data.local
 
+import android.util.Log
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
@@ -18,11 +19,14 @@ class RemindersLocalRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ReminderDataSource {
 
+    private val TAG = RemindersLocalRepository::class.java.simpleName
+
     /**
      * Get the reminders list from the local db
      * @return Result the holds a Success with all the reminders or an Error object with the error message
      */
     override suspend fun getReminders(): Result<List<ReminderDTO>> = withContext(ioDispatcher) {
+        Log.d(TAG, "getReminders called")
         return@withContext try {
             Result.Success(remindersDao.getReminders())
         } catch (ex: Exception) {
@@ -36,6 +40,7 @@ class RemindersLocalRepository(
      */
     override suspend fun saveReminder(reminder: ReminderDTO) =
         withContext(ioDispatcher) {
+            Log.d(TAG, "saveReminder called")
             remindersDao.saveReminder(reminder)
         }
 
@@ -45,6 +50,7 @@ class RemindersLocalRepository(
      * @return Result the holds a Success object with the Reminder or an Error object with the error message
      */
     override suspend fun getReminder(id: String): Result<ReminderDTO> = withContext(ioDispatcher) {
+        Log.d(TAG, "getReminder called")
         try {
             val reminder = remindersDao.getReminderById(id)
             if (reminder != null) {
@@ -62,6 +68,7 @@ class RemindersLocalRepository(
      */
     override suspend fun deleteAllReminders() {
         withContext(ioDispatcher) {
+            Log.d(TAG, "deleteAllReminders called")
             remindersDao.deleteAllReminders()
         }
     }

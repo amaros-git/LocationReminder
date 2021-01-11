@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="RegularTextStyle">
+        <item name="android:textAlignment">textStart</item>
+        <item name="android:textSize">@dimen/regular_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+</resources>
