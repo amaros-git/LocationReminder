@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
+    compileSdkVersion 30
     buildToolsVersion "29.0.2"
 
     defaultConfig {
