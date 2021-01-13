@@ -1,5 +1,6 @@
 package com.udacity.location_reminder.locationreminders.reminderslist
 
+import android.content.Intent
 import android.content.IntentSender
 import android.os.Bundle
 import android.util.Log
@@ -90,6 +91,15 @@ class ReminderListFragment : BaseFragment() {
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) { //TODO what next
             }
+        }
+    }
+
+    //TODO
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
+            // We don't rely on the result code, but just check the location setting again
+            //checkDeviceLocationSettingsAndStartGeofence(false)
         }
     }
 
