@@ -1,5 +1,7 @@
 package com.udacity.location_reminder.locationreminders.savereminder
 
+import android.app.Application
+import android.content.Context
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
@@ -68,9 +70,12 @@ class SaveReminderViewModelTest {
 
         //verify showLoading is false
         assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(false))
+
         //verify Toast message
-        val toastText: String = viewModel.showToast.getOrAwaitValue()
-        assertThat(toastText, `is`(R.string.reminder_saved))
+        val toastText = viewModel.showToast.getOrAwaitValue()
+        val expectedString =
+            ApplicationProvider.getApplicationContext<Application>().getString(R.string.reminder_saved)
+        assertThat(toastText, `is`(expectedString))
     }
 
     //TODO: provide testing to the SaveReminderView and its live data objects
