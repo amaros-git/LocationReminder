@@ -21,10 +21,12 @@ import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.hamcrest.core.Is.`is`
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 import org.robolectric.annotation.Config
 
 @ExperimentalCoroutinesApi
@@ -52,6 +54,10 @@ class SaveReminderViewModelTest {
         )
     }
 
+    @After
+    fun clear() {
+        stopKoin()
+    }
 
     @Test
     fun saveReminder_saveAndCheckToastNavigationCommand() {
@@ -82,4 +88,14 @@ class SaveReminderViewModelTest {
         assertThat(viewModel.navigationCommand.value, `is`(NavigationCommand.Back))
     }
 
+    @Test
+    fun validateEnteredData_anyReminderContainsError() {
+        //when reminder contains any error
+        val reminderLocationNull = ReminderDataItem("Title", "Description", null, 1.0, 1.0)
+        val reminderTitleEmpty = ReminderDataItem("", "Description", "Location", 1.0, 1.0)
+
+        //verify should return false
+        assertThat(viewModel.validateEnteredData(reminderLocationNull), `is`(false))
+        assertThat(viewModel.validateEnteredData(reminderTitleEmpty), `is`(false))
+    }
 }
