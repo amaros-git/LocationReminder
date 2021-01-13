@@ -36,7 +36,8 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     val latitude = MutableLiveData<Double>()
     val longitude = MutableLiveData<Double>()
 
-    private lateinit var geofencingClient: GeofencingClient //TODO change to lazy
+    private val geofencingClient: GeofencingClient =
+        LocationServices.getGeofencingClient(app)
 
     // A PendingIntent for the Broadcast Receiver that handles geofence transitions.
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -45,10 +46,6 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
         // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
         // addGeofences() and removeGeofences().
         PendingIntent.getBroadcast(app, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
-
-    init {
-        geofencingClient = LocationServices.getGeofencingClient(app)
     }
 
     /**
@@ -91,19 +88,11 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
 
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
-                Toast.makeText(
-                    app, R.string.reminer_added,
-                    Toast.LENGTH_SHORT
-                )
-                    .show()
+                showToast.value = app.getString(R.string.reminer_added)
                 Log.d(TAG, "Added ${geofence.requestId}")
             }
             addOnFailureListener {
-                Toast.makeText(
-                    app,
-                    R.string.reminder_not_added, //TODO change to SnackBar with Cancel and Try again
-                    Toast.LENGTH_SHORT
-                ).show()
+                showToast.value = app.getString(R.string.reminder_not_added)
                 if ((it.message != null)) {
                     Log.w(TAG, it.message!!)
                 }
@@ -115,23 +104,13 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     fun removeGeofences() {
         geofencingClient.removeGeofences(geofencePendingIntent)?.run {
             addOnSuccessListener {
-                // Geofences removed
                 Log.d(TAG, "Successfully removed all geofences")
             }
             addOnFailureListener {
-                // Failed to remove geofences
                 Log.d(TAG, "Failed to remove all geofences")
             }
         }
     }
-
-  /*  //TODO there must be better solution ...
-    *//**
-     * I need somehow to remove previous geofences. I don't want to add
-     * additional dependencies to GeofenceTransitionsJobIntentService. So:
-     * Fragment must call it on onStar providing list of ids retrieved from database
-     *//*
-    fun refreshGeofences (geofences: List<String>)*/
 
     /**
      * Save the reminder to the data source
@@ -145,8 +124,8 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
                     reminderData.title,
                     reminderData.description,
                     reminderData.location,
-                    reminderData.latitude,
-                    reminderData.longitude,
+                    reminderData.latitude!!,
+                    reminderData.longitude!!,
                     reminderData.id
                 )
             )
@@ -166,6 +145,11 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
         }
 
         if (reminderData.location.isNullOrEmpty()) {
+            showSnackBarInt.value = R.string.err_select_location
+            return false
+        }
+
+        if ((null == reminderData.latitude) || (null == reminderData.longitude)) {
             showSnackBarInt.value = R.string.err_select_location
             return false
         }

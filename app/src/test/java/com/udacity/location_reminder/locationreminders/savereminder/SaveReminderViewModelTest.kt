@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.base.CharMatcher.isNot
 import com.udacity.location_reminder.R
+import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.locationreminders.MainCoroutineRule
 import com.udacity.location_reminder.locationreminders.data.FakeDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
@@ -76,9 +77,9 @@ class SaveReminderViewModelTest {
         val expectedString =
             ApplicationProvider.getApplicationContext<Application>().getString(R.string.reminder_saved)
         assertThat(toastText, `is`(expectedString))
+
+        //verify Navigation command
+        assertThat(viewModel.navigationCommand.value, `is`(NavigationCommand.Back))
     }
-
-    //TODO: provide testing to the SaveReminderView and its live data objects
-
 
 }
