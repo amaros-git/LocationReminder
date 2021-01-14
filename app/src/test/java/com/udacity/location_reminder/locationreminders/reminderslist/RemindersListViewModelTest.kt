@@ -15,7 +15,9 @@ import com.udacity.location_reminder.locationreminders.savereminder.SaveReminder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert
+import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.hamcrest.Matchers.nullValue
 import org.hamcrest.core.Is
 import org.junit.After
 import org.junit.Before
@@ -68,44 +70,51 @@ class RemindersListViewModelTest {
         viewModel.loadReminders()
 
         //verify showLoading is true
-        MatcherAssert.assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(true))
+        assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(true))
 
         // Execute pending coroutines actions.
         mainCoroutineRule.resumeDispatcher()
 
-
         //verify showLoading is false
-        MatcherAssert.assertThat(
-            viewModel.remindersList.getOrAwaitValue().size, `is`(reminderDataItems.size)
-        )
+        assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(false))
 
-       /* //verify Toast message
-        val toastText = viewModel.showToast.getOrAwaitValue()
-        val expectedString =
-            ApplicationProvider.getApplicationContext<Application>()
-                .getString(R.string.reminder_saved)
-        MatcherAssert.assertThat(toastText, Is.`is`(expectedString))
+        //verify saved in fillDataSource() data are the same as in remindersList LiveData
+        assertThat(viewModel.remindersList.getOrAwaitValue().size, `is`(reminderDataItems.size))
 
-        //verify Navigation command
-        MatcherAssert.assertThat(viewModel.navigationCommand.value, Is.`is`(NavigationCommand.Back))*/
-
-
+        // verify we show actual data
+        assertThat(viewModel.showNoData.getOrAwaitValue(), `is`(false))
     }
 
     @Test
     fun loadReminders_localDataSourceDoesNOTHaveData() {
+        remindersRepository.setReturnError(true)
 
+        mainCoroutineRule.pauseDispatcher()
+
+        viewModel.loadReminders()
+
+        //verify showLoading is true
+        assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(true))
+
+        // Execute pending coroutines actions.
+        mainCoroutineRule.resumeDispatcher()
+
+        //verify showLoading is false
+        assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(false))
+
+        //Verify no data was set to remindersList, si its value shall be null
+        assertThat(viewModel.remindersList.value, `is`(nullValue()))
+
+        // verify ReminderListFragment shows No data image
+        assertThat(viewModel.showNoData.getOrAwaitValue(), `is`(true))
+
+        //Well, cannot verify snackbar message, because its value depends on Result.Error value
     }
 
-    @Test
-    fun invalidateShowNoData_invalidData() {
-
-    }
-
-    @Test
-    fun invalidateShowNoData_validData() {
-
-    }
+    //We don't need separate test for invalidateShowNoData(), it is checked
+    //in the tests of loadReminders()
+    /*@Test
+    fun invalidateShowNoData_invalidData() {}*/
 
     private fun fillDataSource(): List<ReminderDataItem> {
         val reminder1 = ReminderDTO(
