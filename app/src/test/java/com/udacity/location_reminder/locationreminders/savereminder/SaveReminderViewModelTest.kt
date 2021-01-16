@@ -1,25 +1,19 @@
 package com.udacity.location_reminder.locationreminders.savereminder
 
 import android.app.Application
-import android.content.Context
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.common.base.CharMatcher.isNot
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.locationreminders.MainCoroutineRule
 import com.udacity.location_reminder.locationreminders.data.FakeRemindersRepository
-import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.getOrAwaitValue
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.Is
 import org.hamcrest.core.Is.`is`
 import org.junit.After
 import org.junit.Before
@@ -66,7 +60,7 @@ class SaveReminderViewModelTest {
 
         // then save reminder
         val reminder = ReminderDataItem("Title", "Description", "Location", 1.0, 1.0)
-        viewModel.saveReminderAndNavigateBack(reminder)
+        viewModel.saveReminder(reminder)
 
         //verify showLoading is true
         assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(true))

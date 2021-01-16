@@ -86,10 +86,13 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
             .addGeofence(geofence)
             .build()
 
+        //in case of success we navigate back.
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
                 showToast.value = app.getString(R.string.reminer_added)
                 Log.d(TAG, "Added ${geofence.requestId}")
+
+                navigationCommand.value = NavigationCommand.Back
             }
             addOnFailureListener {
                 showToast.value = app.getString(R.string.reminder_not_added)
@@ -115,7 +118,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     /**
      * Save the reminder to the data source
      */
-    fun saveReminderAndNavigateBack(reminderData: ReminderDataItem) {
+    fun saveReminder(reminderData: ReminderDataItem) {
         Log.d(TAG, "saveReminder called")
         showLoading.value = true
         viewModelScope.launch {
@@ -130,8 +133,8 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
                 )
             )
             showLoading.value = false
-            showToast.value = app.getString(R.string.reminder_saved)
-            navigationCommand.value = NavigationCommand.Back
+            //showToast.value = app.getString(R.string.reminder_saved)
+            //navigationCommand.value = NavigationCommand.Back
         }
     }
 

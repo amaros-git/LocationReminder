@@ -2,14 +2,19 @@ package com.udacity.location_reminder.locationreminders.savereminder
 
 import android.Manifest
 import android.annotation.TargetApi
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
+import com.google.android.material.snackbar.Snackbar
+import com.udacity.location_reminder.BuildConfig
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
@@ -29,6 +34,10 @@ class SaveReminderFragment : BaseFragment() {
 
     private val runningQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+
+    //When navigate back showing Snackbar with an action, on the different screen app crashes
+    //with "not attached to Activity". Thus I will remove Snackbar once this Fragment is destroyed
+    private var snackBarGoToSettings: Snackbar? = null
 
 
     override fun onCreateView(
@@ -64,80 +73,71 @@ class SaveReminderFragment : BaseFragment() {
 
             val reminder = ReminderDataItem(title, description, location, latitude, longitude)
             if (_viewModel.validateEnteredData(reminder)) {
+
+                _viewModel.saveReminder(reminder)
+
                 _viewModel.saveGeofence(
                     reminder.id,
                     reminder.latitude!!,
                     reminder.longitude!!
                 )
-                _viewModel.saveReminderAndNavigateBack(reminder)
             }
         }
     }
 
     override fun onStart() {
         super.onStart()
+        Log.d(TAG, "onStart called")
         checkPermissionsAndRequestIfMissing()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG, "onDestroy called")
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
+
+        snackBarGoToSettings?.dismiss()
     }
 
-    /**
-     * Starts the permission check and Geofence process only if the Geofence associated with the
-     * current hint isn't yet active.
-     */
     private fun checkPermissionsAndRequestIfMissing() {
-        if (!isForegroundAndBackgroundLocationPermissionApproved()) {
-            requestForegroundAndBackgroundLocationPermissions()
+        if (!isForegroundLocationPermissionAllowed()) {
+            requestForegroundLocationPermission()
+        } else if (!isBackgroundLocationPermissionAllowed()) {
+            requestBackgroundLocationPermission()
         }
     }
 
+    private fun isForegroundLocationPermissionAllowed(): Boolean =
+        PackageManager.PERMISSION_GRANTED == checkSelfPermission(
+            requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
     @TargetApi(29)
-    private fun isForegroundAndBackgroundLocationPermissionApproved(): Boolean {
-        val foregroundLocationApproved =
+    private fun isBackgroundLocationPermissionAllowed(): Boolean {
+        return if (runningQOrLater) {
             PackageManager.PERMISSION_GRANTED == checkSelfPermission(
-                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+                requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
+        } else {
+            true //if Android OS < Q version, simply return true.
+        }
+    }
 
-        val backgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED == checkSelfPermission(
-                    requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                )
-            } else {
-                true
-            }
-
-        Log.d(TAG, "foregroundLocationApproved = $foregroundLocationApproved, backgroundPermissionApproved = $backgroundPermissionApproved")
-        return foregroundLocationApproved && backgroundPermissionApproved
+    private fun requestForegroundLocationPermission() {
+        requestPermissions(
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            REQUEST_FOREGROUND_PERMISSION_REQUEST_CODE
+        )
     }
 
     @TargetApi(29)
-    private fun requestForegroundAndBackgroundLocationPermissions() {
-        if (isForegroundAndBackgroundLocationPermissionApproved()) {
-            return
-        }
-
-        //var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-       var permissionsArray = arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
-        //var permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val resultCode = REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-       /* val resultCode = when {
-            runningQOrLater -> {
-                Log.d(TAG, "Requesting background")
-                // this provides the result[BACKGROUND_LOCATION_PERMISSION_INDEX]
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-            }
-            else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        }*/
-
-        requestPermissions(permissionsArray, resultCode)
+    private fun requestBackgroundLocationPermission() {
+        requestPermissions(
+            arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+            REQUEST_BACKGROUND_PERMISSION_REQUEST_CODE
+        )
     }
-
 
     //On Android 10+ (Q) toi use geofences we need to have the background permission as well.
     override fun onRequestPermissionsResult(
@@ -145,7 +145,7 @@ class SaveReminderFragment : BaseFragment() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        Log.d(TAG, "requestCode = $requestCode")
+       /* Log.d(TAG, "requestCode = $requestCode")
 
         Log.d(TAG, "received permissions:")
         permissions.forEach {
@@ -155,59 +155,59 @@ class SaveReminderFragment : BaseFragment() {
         Log.d(TAG, "received grantResults:")
         grantResults.forEach {
             Log.d(TAG, it.toString())
+        }*/
+
+        if (grantResults.isEmpty()) {
+            return
         }
 
-        if (grantResults.isNotEmpty()) {
-            if ((grantResults[LOCATION_PERM_INDEX] == PackageManager.PERMISSION_GRANTED)) {
-                if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    )
+        when (requestCode) {
+            REQUEST_FOREGROUND_PERMISSION_REQUEST_CODE -> {
+                if ((grantResults[0] == PackageManager.PERMISSION_GRANTED) &&
+                    !isBackgroundLocationPermissionAllowed()
                 ) {
-                    requestPermissions(
-                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                        REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-                    )
+                    requestBackgroundLocationPermission()
+                } else {
+                    snackBarGoToSettings = showToastWithSettingsAction(
+                        binding.root,
+                        R.string.permission_denied_explanation
+                    ).apply {
+                        show()
+                    }
+                }
+            }
+
+            REQUEST_BACKGROUND_PERMISSION_REQUEST_CODE -> {
+                if ((grantResults[0] != PackageManager.PERMISSION_GRANTED)) {
+                    snackBarGoToSettings = showToastWithSettingsAction(
+                        binding.root,
+                        R.string.permission_denied_explanation
+                    ).apply {
+                        show()
+                    }
                 }
             }
         }
-        Log.d(TAG, "Permissions NOT granted")
+    }
 
-
-      /*  if (grantResults.isNotEmpty()) {
-            if ((grantResults[LOCATION_PERM_INDEX] == PackageManager.PERMISSION_GRANTED) &&
-                (grantResults[BACKGROUND_LOCATION_PERM_INDEX] == PackageManager.PERMISSION_GRANTED)
-            ) {
-                Log.d(TAG, "Permissions granted")
-                return
+    private fun showToastWithSettingsAction(
+        view: View,
+        textRId: Int,
+        length: Int = Snackbar.LENGTH_INDEFINITE
+    ): Snackbar {
+        Log.d(TAG, "isAdded = $isAdded")
+        return Snackbar.make(view, textRId, length).apply {
+            setAction(R.string.settings) {
+                // Displays App settings screen.
+                startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
             }
         }
-        Log.d(TAG, "Permissions NOT granted")*/
-
-         /* if (
-              grantResults.isEmpty() ||
-              grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-              (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-                      grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                      PackageManager.PERMISSION_DENIED)
-          ) {
-              // Permission denied.
-              Snackbar.make(
-                  binding.root,
-                  R.string.permission_denied_explanation, Snackbar.LENGTH_SHORT
-              )
-                  .setAction(R.string.settings) {
-                      // Displays App settings screen.
-                      startActivity(Intent().apply {
-                          action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                          data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                          flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                      })
-                  }.show()
-          } else {
-              //checkDeviceLocationSettingsAndStartGeofence()
-          }*/
     }
+
     companion object {
         internal const val ACTION_GEOFENCE_EVENT =
             "LocationReminder.action.ACTION_GEOFENCE_EVENT"
@@ -217,7 +217,8 @@ class SaveReminderFragment : BaseFragment() {
 private const val LOCATION_PERM_INDEX = 0
 private const val BACKGROUND_LOCATION_PERM_INDEX = 1
 
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
-private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
+private const val REQUEST_FOREGROUND_PERMISSION_REQUEST_CODE = 34
+private const val REQUEST_BACKGROUND_PERMISSION_REQUEST_CODE = 33
+
 
 
