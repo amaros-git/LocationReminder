@@ -61,7 +61,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     }
 
     @SuppressLint("MissingPermission")
-    fun saveGeofence(id: String, lat: Double, long: Double) {
+    fun saveGeofenceAndNavigateBackIfSuccess(id: String, lat: Double, long: Double) {
         // Build the Geofence Object
         val geofence = Geofence.Builder()
             // Set the request ID, string to identify the geofence.

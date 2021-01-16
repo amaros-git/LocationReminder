@@ -76,7 +76,7 @@ class SaveReminderFragment : BaseFragment() {
 
                 _viewModel.saveReminder(reminder)
 
-                _viewModel.saveGeofence(
+                _viewModel.saveGeofenceAndNavigateBackIfSuccess(
                     reminder.id,
                     reminder.latitude!!,
                     reminder.longitude!!

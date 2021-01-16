@@ -71,15 +71,6 @@ class SaveReminderViewModelTest {
 
         //verify showLoading is false
         assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(false))
-
-        //verify Toast message
-        val toastText = viewModel.showToast.getOrAwaitValue()
-        val expectedString =
-            ApplicationProvider.getApplicationContext<Application>().getString(R.string.reminder_saved)
-        assertThat(toastText, `is`(expectedString))
-
-        //verify Navigation command
-        assertThat(viewModel.navigationCommand.value, `is`(NavigationCommand.Back))
     }
 
     @Test

@@ -2,35 +2,40 @@ package com.udacity.location_reminder.locationreminders.reminderslist
 
 import android.app.Application
 import android.os.Bundle
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import android.util.Log
+import android.view.View
+import androidx.annotation.NonNull
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
+import androidx.test.espresso.Espresso.onData
+import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.BoundedMatcher
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.location_reminder.R
-
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
-import com.udacity.location_reminder.locationreminders.data.local.LocalDB
-import com.udacity.location_reminder.locationreminders.data.local.RemindersLocalRepository
-import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.util.FakeRemindersRepository
-import com.udacity.location_reminder.util.MainCoroutineRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+import org.hamcrest.Matchers.*
+import org.hamcrest.core.Is.`is`
+import org.hamcrest.core.IsInstanceOf.instanceOf
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -39,6 +44,7 @@ import org.koin.test.get
 import org.koin.test.inject
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
+
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -84,18 +90,19 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
     @After
     fun clear() {
         stopKoin()
+
+        runBlockingTest {
+            repository.deleteAllReminders()
+        }
     }
 
     @Test
     fun clickAddReminder_navigateToSaveReminderFragment() {
         val viewModel: RemindersListViewModel by inject()
-        runBlockingTest {
-            repository.saveReminder(ReminderDTO("Title1", "Description1", "Location1", 1.0, 1.0))
-        }
+
 
         //Start fragment
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
-
         val navController = Mockito.mock(NavController::class.java)
         scenario.onFragment {
             Navigation.setViewNavController(it.view!!, navController)
@@ -109,9 +116,29 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
         verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder())
     }
 
-//    TODO: test the navigation of the fragments.
+    @Test
+    fun addReminder_reminderIsDisplayedInRecyclerView() {
+        //Add reminder to the repository
+        val reminder = ReminderDTO("Title1", "Description1", "Location1", 1.0, 1.0)
+        runBlockingTest {
+            repository.saveReminder(reminder)
+        }
 
+        //Start fragment
+        launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
-//    TODO: test the displayed data on the UI.
-//    TODO: add testing for the error messages.
+        //Verify reminders RecyclerView contains saved reminder
+        onView(withText(reminder.title)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun remindersRepositoryIsEmpty_checkIfNoDataViewIsShown() {
+        //Start fragment. Because we clear repository in @After, it will be empty
+        launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+
+        //Verify if NO Data Image is shown
+        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
+
+    }
 }
+
