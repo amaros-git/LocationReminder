@@ -8,7 +8,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.locationreminders.MainCoroutineRule
-import com.udacity.location_reminder.locationreminders.data.FakeDataSource
+import com.udacity.location_reminder.locationreminders.data.FakeRemindersRepository
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.getOrAwaitValue
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
@@ -40,11 +40,11 @@ class RemindersListViewModelTest {
 
     private lateinit var viewModel: RemindersListViewModel
 
-    private lateinit var remindersRepository: FakeDataSource
+    private lateinit var remindersRepository: FakeRemindersRepository
 
     @Before
     fun setupViewModel() {
-        remindersRepository = FakeDataSource()
+        remindersRepository = FakeRemindersRepository()
 
         viewModel = RemindersListViewModel(
             ApplicationProvider.getApplicationContext(),

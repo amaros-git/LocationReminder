@@ -101,7 +101,7 @@ class RemindersDaoTest {
             loadedReminders = database.reminderDao().getReminders()
         }
 
-        //Verify database is empty and empty was returned
+        //Verify database is empty and empty list was returned
         assertThat(loadedReminders, `is`(emptyList()))
     }
 

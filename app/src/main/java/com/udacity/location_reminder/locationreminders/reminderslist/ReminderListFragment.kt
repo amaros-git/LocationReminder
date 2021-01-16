@@ -33,7 +33,7 @@ class ReminderListFragment : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(
                 inflater,
@@ -82,7 +82,7 @@ class ReminderListFragment : BaseFragment() {
             } else {
                 Snackbar.make(
                     binding.root,
-                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                    R.string.location_required_error, Snackbar.LENGTH_SHORT
                 ).setAction(android.R.string.ok) {
                     checkIfLocationIsEnabled(false)
                 }.show()
@@ -90,6 +90,7 @@ class ReminderListFragment : BaseFragment() {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) { //TODO what next
+
             }
         }
     }

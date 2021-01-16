@@ -1,9 +1,10 @@
-package com.udacity.location_reminder.locationreminders.data
+package com.udacity.location_reminder.util
 
+import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
 
-class FakeDataSource : ReminderDataSource {
+class FakeRemindersRepository : ReminderDataSource {
 
     private val reminders = LinkedHashMap<String, ReminderDTO>()
 
@@ -18,6 +19,7 @@ class FakeDataSource : ReminderDataSource {
             false -> {
                 Result.Success(reminders.values.toList())
             }
+
             true -> {
                 Result.Error("Test error")
             }
