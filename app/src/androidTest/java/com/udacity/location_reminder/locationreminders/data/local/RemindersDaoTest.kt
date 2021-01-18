@@ -41,6 +41,10 @@ class RemindersDaoTest {
     @After
     fun closeDb() = database.close()
 
+    /**
+     * This and the next getReminderById methods test both DAO APIs:
+     * saveReminder and getReminder(s)
+     */
     @Test
     fun getReminders_SaveAndGetRemindersSuccessfully() = runBlockingTest {
         // Load test reminder to the database

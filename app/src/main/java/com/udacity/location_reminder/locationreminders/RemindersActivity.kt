@@ -28,6 +28,7 @@ class RemindersActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminders)
 
+        //TODO REMOVE !
         val remindersLocalRepository: ReminderDataSource by inject()
         GlobalScope.launch {
             remindersLocalRepository.deleteAllReminders()

@@ -55,7 +55,7 @@ class RemindersLocalRepositoryTest {
     // runBlocking is used here because of https://github.com/Kotlin/kotlinx.coroutines/issues/1204
     // TODO: Replace with runBlockingTest once issue is resolved
     @Test
-    fun getReminders_loadRemindersAndGetThemSuccessfully() = runBlocking {
+    fun getReminders_saveRemindersAndGetThemSuccessfully() = runBlocking {
 
         //Load test reminders into database
         val savedReminders = loadTestRemindersToDatabase()
@@ -65,43 +65,65 @@ class RemindersLocalRepositoryTest {
 
         //Verify Success was returned
         assertThat(result, instanceOf(Result.Success::class.java))
+        result as Result.Success
 
         //Verify size is the same
-        result as Result.Success
         assertThat(result.data.size, `is`(savedReminders.size))
     }
 
-     @Test
-     fun saveReminder(reminder: ReminderDTO) = runBlockingTest {
-         //Save reminder to the database
-         val savedReminder = ReminderDTO(
-             "Title1", "Description1", "Location1",
-             1.0, 1.0
-         )
-         repository.saveReminder(savedReminder)
+    /**
+     * actually it test both repo APIs- saveReminder() getReminder()
+     */
+    @Test
+    fun getReminder_saveReminderAndGetItSuccessfully() = runBlocking {
+        //Save reminder to the database
+        val savedReminder = ReminderDTO(
+            "Title1", "Description1", "Location1",
+            1.0, 1.0
+        )
+        repository.saveReminder(savedReminder)
 
-         //Then get it from repo
-         val loadedReminder = repository.getReminder(savedReminder.id)
+        //Then get it from repo
+        val result = repository.getReminder(savedReminder.id)
 
-         // THEN - Same task is returned.
-         assertThat(result.succeeded, Is.`is`(true))
-         result as kotlin.Result.Success
-         assertThat(result.data.title, Is.`is`("title"))
-         assertThat(result.data.description, Is.`is`("description"))
-         assertThat(result.data.isCompleted, Is.`is`(false))
+        // Verify Result.Success is returned
+        assertThat(result, instanceOf(Result.Success::class.java))
+        result as Result.Success
+
+        //Verify titles are the same
+        assertThat(result.data.title, `is`(savedReminder.title))
+        //Verify locations are the same
+        assertThat(result.data.location, `is`(savedReminder.location))
+    }
+
+    @Test
+    fun getReminder_tryToGetNonexistentReminder() = runBlocking {
+        //Delete all reminders to be sure
+        repository.deleteAllReminders()
+
+        //Then try to get reminder with 0 id
+        val result = repository.getReminder("0")
+
+        //Verify Result.Error is returned
+        assertThat(result, instanceOf(Result.Error::class.java))
+    }
 
 
+    @Test
+    fun deleteAllReminders_deleteAllAndGetSuccessWithEmptyList() = runBlocking {
+        //Delete all reminders
+        repository.deleteAllReminders()
 
-     }
+        //Then try to get all reminders
+        val result = repository.getReminders()
 
+        //Verify Result.Success is returned
+        assertThat(result, instanceOf(Result.Success::class.java))
+        result as Result.Success
 
-     /*@Test
-     fun getReminder(id: String): Result<ReminderDTO> {
-
-     }
-
-     @Test
-     fun deleteAllReminders() {*/
+        //Verify empty list is returned
+        assertThat(result.data, `is`(emptyList()))
+    }
 
     private fun loadTestRemindersToDatabase(): List<ReminderDTO> {
         val reminder1 = ReminderDTO(
@@ -117,7 +139,7 @@ class RemindersLocalRepositoryTest {
             1.0, 1.0
         )
 
-        runBlockingTest {
+        runBlocking {
             repository.saveReminder(reminder1)
             repository.saveReminder(reminder2)
             repository.saveReminder(reminder3)
