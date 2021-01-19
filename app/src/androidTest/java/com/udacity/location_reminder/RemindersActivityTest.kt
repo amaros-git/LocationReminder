@@ -1,10 +1,13 @@
 package com.udacity.location_reminder
 
 import android.app.Application
+import androidx.databinding.adapters.TextViewBindingAdapter
+import androidx.databinding.adapters.TextViewBindingAdapter.setText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -15,6 +18,7 @@ import com.udacity.location_reminder.locationreminders.data.local.LocalDB
 import com.udacity.location_reminder.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.location_reminder.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -83,11 +87,33 @@ class RemindersActivityTest :
 
     @Test
     fun addNewReminder() {
-        //On the start repository must be empty. Check if No Data Image is displayed
-        // Start up Tasks screen.
+        //On the start repository must be empty.
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
+        //Verify if No Data ImageView is visible
         onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
+
+        //Click on add reminder and go to SaveReminderFragment
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        //Verify views are empty initially
+        onView(withId(R.id.selectedLocation)).check(matches(withText("")))
+        onView(withId(R.id.reminderTitle)).check(matches(withText("")))
+        onView(withId(R.id.reminderDescription)).check(matches(withText("")))
+
+        onView(withId(R.id.selectLocation)).perform(click())
+
+        onView(withId(R.id.map)).perform(longClick())
+
+        onView(withId(R.id.save_location_button)).perform(click())
+
+        onView(withId(R.id.reminderTitle)).perform(typeText("Title1"))
+        onView(withId(R.id.reminderDescription)).perform(typeText("Description1"))
+
+        onView(withId(R.id.saveReminder))
+
+
+
 
         activityScenario.close()
 
