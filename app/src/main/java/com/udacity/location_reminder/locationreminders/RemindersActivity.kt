@@ -10,6 +10,7 @@ import com.udacity.location_reminder.R
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.local.LocalDB
 import com.udacity.location_reminder.locationreminders.data.local.RemindersLocalRepository
+import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.android.synthetic.main.activity_reminders.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,17 +24,11 @@ import org.koin.android.ext.android.inject
 class RemindersActivity : AppCompatActivity() {
 
     private val repository: ReminderDataSource by inject()
+    val viewModel: SaveReminderViewModel by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminders)
-
-        //TODO REMOVE !
-        val remindersLocalRepository: ReminderDataSource by inject()
-        GlobalScope.launch {
-            remindersLocalRepository.deleteAllReminders()
-        }
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -44,9 +39,9 @@ class RemindersActivity : AppCompatActivity() {
                 return true
             }
             R.id.clearAll -> {
-               val db = LocalDB.createRemindersDao(this)
                GlobalScope.launch {
                    repository.deleteAllReminders()
+                   viewModel.removeGeofences()
                }
             }
         }

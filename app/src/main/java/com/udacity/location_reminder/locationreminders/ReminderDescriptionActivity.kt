@@ -10,8 +10,14 @@ import androidx.databinding.DataBindingUtil
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.ReminderDetailsView
 import com.udacity.location_reminder.databinding.ActivityReminderDescriptionBinding
+import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.android.synthetic.main.it_reminder.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 
 /**
  * Activity that displays the reminder details after the user clicks on the notification
@@ -19,6 +25,8 @@ import kotlinx.android.synthetic.main.it_reminder.*
 class ReminderDescriptionActivity : AppCompatActivity() {
 
     private val TAG = ReminderDescriptionActivity::class.java.simpleName
+
+    private val repository: ReminderDataSource by inject()
 
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
@@ -61,32 +69,11 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         }
     }
 
-    /*private fun createReminderCardView(reminder: ReminderDataItem): CardView {
-        val helper = HelperViewCreator(this)
 
-        val remindersLayout = helper.createLinerLayout()
-        remindersLayout.apply {
-            reminder.title?.let {
-                addView(helper.createTextView(it))
-            }
-            reminder.description?.let {
-                addView(helper.createTextView(it))
-            }
-            reminder.location?.let {
-                addView(helper.createTextView(it))
-            }
-            addView(helper.createTextView(reminder.latitude.toString()))
-            addView(helper.createTextView(reminder.longitude.toString()))
+    override fun onDestroy() {
+        super.onDestroy()
+        GlobalScope.launch(Dispatchers.IO) {
+            //remi
         }
-
-        return CardView(this).apply {
-            val layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            layoutParams.setMargins(0, 0, 0, 40)
-            setLayoutParams(layoutParams)
-            addView(remindersLayout)
-        }
-    }*/
+    }
 }
