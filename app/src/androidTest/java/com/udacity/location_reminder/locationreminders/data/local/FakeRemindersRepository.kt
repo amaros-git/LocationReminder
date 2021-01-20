@@ -1,4 +1,4 @@
-package com.udacity.location_reminder.util
+package com.udacity.location_reminder.locationreminders.data.local
 
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO

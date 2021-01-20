@@ -2,39 +2,26 @@ package com.udacity.location_reminder.locationreminders.reminderslist
 
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import androidx.annotation.NonNull
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
-import androidx.test.espresso.Espresso.onData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
-import com.udacity.location_reminder.util.FakeRemindersRepository
+import com.udacity.location_reminder.locationreminders.data.local.FakeRemindersRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.Description
-import org.hamcrest.Matcher
-import org.hamcrest.Matchers.*
-import org.hamcrest.core.Is.`is`
-import org.hamcrest.core.IsInstanceOf.instanceOf
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -108,7 +95,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
         }
 
         //Then click on addReminder fab
-        Espresso.onView(withId(R.id.addReminderFAB))
+        onView(withId(R.id.addReminderFAB))
             .perform(click())
 
         //Verify app navigated to the SaveReminderFragment

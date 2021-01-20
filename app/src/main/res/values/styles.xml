@@ -6,6 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
     </style>
 
 
@@ -15,9 +16,19 @@
     </style>
 
     <style name="RegularTextStyle">
-        <item name="android:textSize">@dimen/regular_text_size</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/regular_text_size </item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="RegularTextStyleLight" parent="RegularTextStyle">
+        <item name="android:textColor">@color/grey</item>
+    </style>
+
+    <style name="RegularTextStyleHeader" parent="RegularTextStyle">
+        <item name="android:textSize">@dimen/header_text_size </item>
+        <item name="android:textStyle">bold</item>
     </style>
 
 

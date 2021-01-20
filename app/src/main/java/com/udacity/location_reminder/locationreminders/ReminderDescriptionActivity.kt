@@ -4,13 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.databinding.DataBindingUtil
 import com.udacity.location_reminder.R
-import com.udacity.location_reminder.ReminderCardView
+import com.udacity.location_reminder.ReminderDetailsView
 import com.udacity.location_reminder.databinding.ActivityReminderDescriptionBinding
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.android.synthetic.main.it_reminder.*
@@ -46,22 +44,21 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             intent.extras?.get(EXTRA_ReminderDataItem) as ReminderDataItem?
         Log.d(TAG, "reminder = $reminder")
 
-        val card = ReminderCardView(this)
 
-        card.findViewById<TextView>(R.id.huj_text).text = "Param"
-        card.findViewById<TextView>(R.id.pizda_text).text = "Pam Pam"
-
-        val card2 = ReminderCardView(this)
-
-        card2.findViewById<TextView>(R.id.huj_text).text = "Param"
-        card2.findViewById<TextView>(R.id.pizda_text).text = "Pam Pam"
-
-
-        reminder?.let {
-            binding.remindersList.addView(card)
-            binding.remindersList.addView(card2)
+        //TODO REMOVE
+        val reminders = mutableListOf<ReminderDataItem>()
+        for (i: Int in 0..20) {
+            val item = ReminderDataItem("Title$i", "Description$i", "Location$i", 0.0, 0.0)
+            reminders.add(item)
         }
 
+        for (i: Int in 0 until reminders.size) {
+            val view = ReminderDetailsView(applicationContext)
+            view.findViewById<TextView>(R.id.titleText).text = reminders[i].title
+            view.findViewById<TextView>(R.id.titleText).text = reminders[i].description
+
+            binding.remindersList.addView(view)
+        }
     }
 
     /*private fun createReminderCardView(reminder: ReminderDataItem): CardView {

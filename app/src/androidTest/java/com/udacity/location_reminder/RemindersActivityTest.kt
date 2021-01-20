@@ -9,6 +9,7 @@ import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -20,6 +21,7 @@ import com.udacity.location_reminder.locationreminders.reminderslist.RemindersLi
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -31,6 +33,7 @@ import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 import org.koin.test.inject
+import java.lang.Thread.sleep
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -101,19 +104,27 @@ class RemindersActivityTest :
         onView(withId(R.id.reminderTitle)).check(matches(withText("")))
         onView(withId(R.id.reminderDescription)).check(matches(withText("")))
 
+        //Click on select location
         onView(withId(R.id.selectLocation)).perform(click())
 
+        //Add random marker on the map
         onView(withId(R.id.map)).perform(longClick())
 
+        //Click on save location button
         onView(withId(R.id.save_location_button)).perform(click())
 
+        //Enter title and description
         onView(withId(R.id.reminderTitle)).perform(typeText("Title1"))
-        onView(withId(R.id.reminderDescription)).perform(typeText("Description1"))
+        onView(withId(R.id.reminderDescription))
+            .perform(typeText("Description1"))
+            .perform(closeSoftKeyboard());
 
-        onView(withId(R.id.saveReminder))
+        //Save reminder
+        onView(withId(R.id.saveReminder)).perform(click())
 
-
-
+        //
+        onView(withText("Title1")).check(matches(isDisplayed()))
+        onView(withText("Description1")).check(matches(isDisplayed()))
 
         activityScenario.close()
 
