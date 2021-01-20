@@ -13,24 +13,19 @@
     <style name="ButtonStyle">
         <item name="android:background">@color/colorAccent</item>
         <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/text_size_normal </item>
     </style>
 
     <style name="RegularTextStyle">
         <item name="android:gravity">center</item>
-        <item name="android:textSize">@dimen/regular_text_size </item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">@color/black</item>
     </style>
 
     <style name="RegularTextStyleLight" parent="RegularTextStyle">
         <item name="android:textColor">@color/grey</item>
-        <item name="android:textStyle">italic</item>
+        <item name="android:textSize">@dimen/text_size_normal</item>
     </style>
-
-    <style name="RegularTextStyleHeader" parent="RegularTextStyle">
-        <item name="android:textSize">@dimen/header_text_size </item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
 
 </resources>

@@ -52,4 +52,5 @@
     <string name="show_on_map_button_text">Show on Map</string>
     <string name="keep_button_text">Keep reminder</string>
     <string name="you_have_reminders">You have %d %s</string>
+    <string name="activity_details_title">POIs nearby</string>
 </resources>

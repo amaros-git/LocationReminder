@@ -68,16 +68,33 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             }
         }
     }
-    
-    private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        val length = triggeringGeofences.size
-        val requestId = triggeringGeofences[length - 1].requestId
-        Log.d(TAG, "request id = $requestId")
 
+    private fun sendNotification(triggeringGeofences: List<Geofence>) {
         //Get the local repository instance
-        val remindersLocalRepository: ReminderDataSource by inject()
+        val repository: ReminderDataSource by inject()
+        val triggeredReminders = ArrayList<ReminderDataItem>()
+
+        CoroutineScope(coroutineContext).launch(SupervisorJob()) {
+
+            for (i: Int in triggeringGeofences.indices) {
+                val result = repository.getReminder(triggeringGeofences[i].requestId)
+                if (result is Result.Success<ReminderDTO>) {
+                    triggeredReminders.add(
+                        ReminderDataItem(
+                            result.data.title,
+                            result.data.description,
+                            result.data.location,
+                            result.data.latitude,
+                            result.data.longitude
+                        )
+                    )
+                }
+
+                sendNotification(this@GeofenceTransitionsJobIntentService, triggeredReminders)
+            }
+        }
 //        Interaction to the repository has to be through a coroutine scope
-        CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
+      /*  CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
             //get the reminder with the request id
             val result = remindersLocalRepository.getReminder(requestId)
             if (result is Result.Success<ReminderDTO>) {
@@ -94,7 +111,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                     )
                 )
             }
-        }
+        }*/
     }
 
 }

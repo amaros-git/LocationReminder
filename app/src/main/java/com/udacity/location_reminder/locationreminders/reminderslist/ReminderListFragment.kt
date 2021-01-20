@@ -45,7 +45,13 @@ class ReminderListFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
 
-        binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
+        binding.refreshLayout.setOnRefreshListener {
+            _viewModel.loadReminders()
+
+            if (binding.refreshLayout.isRefreshing) {
+                binding.refreshLayout.isRefreshing = false;
+            }
+        }
 
         return binding.root
     }
@@ -99,8 +105,7 @@ class ReminderListFragment : BaseFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
-            // We don't rely on the result code, but just check the location setting again
-            //checkDeviceLocationSettingsAndStartGeofence(false)
+            checkIfLocationIsEnabled(false)
         }
     }
 

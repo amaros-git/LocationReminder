@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.it_reminder.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
 /**
@@ -29,17 +28,20 @@ class ReminderDescriptionActivity : AppCompatActivity() {
     private val repository: ReminderDataSource by inject()
 
     companion object {
-        private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
+        private const val EXTRA_ListOfReminderDataItem = "EXTRA_ReminderDataItem"
 
         //        receive the reminder object after the user clicks on the notification
-        fun newIntent(context: Context, reminderDataItem: ReminderDataItem): Intent {
+        fun newIntent(context: Context, reminders: ArrayList<ReminderDataItem>): Intent {
             val intent = Intent(context, ReminderDescriptionActivity::class.java)
-            intent.putExtra(EXTRA_ReminderDataItem, reminderDataItem)
+            //intent.putExtra(EXTRA_ReminderDataItem, reminders)
+            intent.putParcelableArrayListExtra(EXTRA_ListOfReminderDataItem, reminders)
             return intent
         }
     }
 
     private lateinit var binding: ActivityReminderDescriptionBinding
+
+    private lateinit var reminders: ArrayList<ReminderDataItem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,22 +50,19 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             R.layout.activity_reminder_description
         )
 
-        val reminder: ReminderDataItem? =
-            intent.extras?.get(EXTRA_ReminderDataItem) as ReminderDataItem?
-        Log.d(TAG, "reminder = $reminder")
-
-
-        //TODO REMOVE
-        val reminders = mutableListOf<ReminderDataItem>()
-        for (i: Int in 0..20) {
-            val item = ReminderDataItem("Title$i", "Description$i", "Location$i", 0.0, 0.0)
-            reminders.add(item)
+        reminders = intent.extras?.get(EXTRA_ListOfReminderDataItem) as ArrayList<ReminderDataItem>
+        Log.d(TAG, "received reminders")
+        reminders.forEach {
+            Log.d(TAG, it.toString())
         }
 
-        for (i: Int in 0 until reminders.size) {
+        title = getString(R.string.activity_details_title)
+
+        for (i: Int in reminders.indices) {
             val view = ReminderDetailsView(applicationContext)
-            view.findViewById<TextView>(R.id.titleText).text = reminders[i].title
-            view.findViewById<TextView>(R.id.titleText).text = reminders[i].description
+            view.findViewById<TextView>(R.id.title).text = reminders[i].title
+            view.findViewById<TextView>(R.id.description).text = reminders[i].description
+            view.findViewById<TextView>(R.id.location).text = reminders[i].location
 
             binding.remindersList.addView(view)
         }
