@@ -68,7 +68,7 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             view.findViewById<TextView>(R.id.description).text = reminders[i].description
             view.findViewById<TextView>(R.id.location).text = reminders[i].location
 
-            view.findViewById<Button>(R.id.RemoveReminderButton).setOnClickListener {
+            view.findViewById<TextView>(R.id.RemoveReminderButton).setOnClickListener {
                 CoroutineScope(coroutineContext).launch(coroutineJob) {
                     val id = reminders[i].id
                     repository.deleteReminder(id)
@@ -78,10 +78,10 @@ class ReminderDescriptionActivity : AppCompatActivity() {
                 view.fadeOut() //remove reminder view
             }
 
-            view.findViewById<Button>(R.id.showOnMapButton).setOnClickListener {
+            /*view.findViewById<Button>(R.id.showOnMapButton).setOnClickListener {
                 Toast.makeText(applicationContext, "Not implemented, sorry ;)", Toast.LENGTH_SHORT)
                     .show()
-            }
+            }*/
 
             binding.remindersList.addView(view)
         }
