@@ -38,4 +38,8 @@ class FakeRemindersRepository : ReminderDataSource {
     override suspend fun deleteAllReminders() {
        reminders.clear()
     }
+
+    override suspend fun deleteReminder(id: String) {
+        reminders.remove(id)
+    }
 }

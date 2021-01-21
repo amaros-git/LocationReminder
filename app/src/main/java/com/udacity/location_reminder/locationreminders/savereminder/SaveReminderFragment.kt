@@ -148,6 +148,8 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     //On Android 10+ (Q) toi use geofences we need to have the background permission as well.
+    //On the Android 10+ I need to ask ACCESS_FINE_LOCATION and then ACCESS_BACKGROUND_LOCATION,
+    //Only in such case I can get screen to allow to use set All the time permission
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
