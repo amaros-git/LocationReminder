@@ -39,14 +39,14 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     private val geofencingClient: GeofencingClient =
         LocationServices.getGeofencingClient(app)
 
-    // A PendingIntent for the Broadcast Receiver that handles geofence transitions.
+   /* // A PendingIntent for the Broadcast Receiver that handles geofence transitions.
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(app, GeofenceBroadcastReceiver::class.java)
         intent.action = SaveReminderFragment.ACTION_GEOFENCE_EVENT
         // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
         // addGeofences() and removeGeofences().
         PendingIntent.getBroadcast(app, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-    }
+    }*/
 
     /**
      * Clear the live data objects to start fresh next time the view model gets called
@@ -60,7 +60,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
         longitude.value = null
     }
 
-    @SuppressLint("MissingPermission")
+   /* @SuppressLint("MissingPermission")
     fun saveGeofenceAndNavigateBackIfSuccess(id: String, lat: Double, long: Double) {
         // Build the Geofence Object
         val geofence = Geofence.Builder()
@@ -102,9 +102,9 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
                 Log.e(TAG, "Failed to add geofence with id ${geofence.requestId}")
             }
         }
-    }
+    }*/
 
-    fun removeGeofences() {
+   /* fun removeGeofences() {
         geofencingClient.removeGeofences(geofencePendingIntent)?.run {
             addOnSuccessListener {
                 Log.d(TAG, "Successfully removed all geofences")
@@ -113,7 +113,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
                 Log.d(TAG, "Failed to remove all geofences")
             }
         }
-    }
+    }*/
 
     /**
      * Save the reminder to the data source
@@ -132,9 +132,10 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
                     reminderData.id
                 )
             )
+            Log.d(TAG, "Saved reminder with id ${reminderData.id} ")
             showLoading.value = false
-            //showToast.value = app.getString(R.string.reminder_saved)
-            //navigationCommand.value = NavigationCommand.Back
+            showToast.value = app.getString(R.string.reminder_saved)
+            navigationCommand.value = NavigationCommand.Back
         }
     }
 

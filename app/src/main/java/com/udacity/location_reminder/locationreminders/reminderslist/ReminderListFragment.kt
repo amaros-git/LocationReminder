@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
@@ -16,9 +17,11 @@ import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.databinding.FragmentRemindersBinding
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import com.udacity.location_reminder.utils.setTitle
 import com.udacity.location_reminder.utils.setup
+import kotlinx.coroutines.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReminderListFragment : BaseFragment() {
@@ -47,7 +50,6 @@ class ReminderListFragment : BaseFragment() {
 
         binding.refreshLayout.setOnRefreshListener {
             _viewModel.loadReminders()
-
             if (binding.refreshLayout.isRefreshing) {
                 binding.refreshLayout.isRefreshing = false;
             }
@@ -147,13 +149,31 @@ class ReminderListFragment : BaseFragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        Log.d("RemindersActivity", "onOptionsItemSelected called")
         when (item.itemId) {
-            R.id.logout -> {
-//                TODO: add the logout implementation
+           /* android.R.id.logout -> { //TODO
+                findNavController().popBackStack()
+                return true
+            }*/
+            R.id.clearAll -> {
+                val result = GlobalScope.async {
+                    _viewModel.deleteAllReminders()
+                    val geofenceClient = GeofenceClient(activity!!.application)
+                    geofenceClient.removeAllGeofences()
+                    Log.d(TAG, "Here1")
+                }
+
+                GlobalScope.launch(Dispatchers.Main) {
+                    result.await()
+                    delay(100)
+                    Log.d(TAG, "Here2")
+                    binding.refreshLayout.isRefreshing = true
+                    _viewModel.loadReminders()
+                    binding.refreshLayout.isRefreshing = false
+                }
             }
         }
         return super.onOptionsItemSelected(item)
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

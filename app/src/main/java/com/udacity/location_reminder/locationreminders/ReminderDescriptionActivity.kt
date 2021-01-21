@@ -4,19 +4,23 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.ReminderDetailsView
 import com.udacity.location_reminder.databinding.ActivityReminderDescriptionBinding
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
+import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
-import kotlinx.android.synthetic.main.it_reminder.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.udacity.location_reminder.utils.fadeOut
+import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
+import kotlin.coroutines.CoroutineContext
+import com.udacity.location_reminder.locationreminders.data.dto.Result
 
 /**
  * Activity that displays the reminder details after the user clicks on the notification
@@ -25,15 +29,17 @@ class ReminderDescriptionActivity : AppCompatActivity() {
 
     private val TAG = ReminderDescriptionActivity::class.java.simpleName
 
+    private var coroutineJob: Job = Job()
+    private val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + coroutineJob
+
     private val repository: ReminderDataSource by inject()
 
     companion object {
         private const val EXTRA_ListOfReminderDataItem = "EXTRA_ReminderDataItem"
 
-        //        receive the reminder object after the user clicks on the notification
         fun newIntent(context: Context, reminders: ArrayList<ReminderDataItem>): Intent {
             val intent = Intent(context, ReminderDescriptionActivity::class.java)
-            //intent.putExtra(EXTRA_ReminderDataItem, reminders)
             intent.putParcelableArrayListExtra(EXTRA_ListOfReminderDataItem, reminders)
             return intent
         }
@@ -64,6 +70,21 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             view.findViewById<TextView>(R.id.description).text = reminders[i].description
             view.findViewById<TextView>(R.id.location).text = reminders[i].location
 
+            view.findViewById<Button>(R.id.KeepReminderButton).setOnClickListener {
+                CoroutineScope(coroutineContext).launch(coroutineJob) {
+                    val id = reminders[i].id
+                    repository.deleteReminder(id)
+                    val geofenceClient = GeofenceClient(application)
+                    geofenceClient.removeGeofences(listOf(id))
+                }
+                view.fadeOut() //remove reminder view
+            }
+
+            view.findViewById<Button>(R.id.showOnMapButton).setOnClickListener {
+                Toast.makeText(applicationContext, "Not implemented, sorry ;)", Toast.LENGTH_SHORT)
+                    .show()
+            }
+
             binding.remindersList.addView(view)
         }
     }
@@ -71,8 +92,15 @@ class ReminderDescriptionActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        GlobalScope.launch(Dispatchers.IO) {
-            //remi
-        }
+        coroutineJob.cancel("Activity destroyed")
+        /* GlobalScope.launch(Dispatchers.IO) {
+             reminders.forEach {
+                 Log.d(TAG, "Deleting Reminder with id ${it.id}")
+                 repository.deleteReminder(it.id)
+             }
+
+             val geofenceClient = GeofenceClient(application)
+             geofenceClient.removeGeofences(reminders.toList())
+         }*/
     }
 }

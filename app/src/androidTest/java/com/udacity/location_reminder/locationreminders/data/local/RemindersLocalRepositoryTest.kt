@@ -7,13 +7,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
+import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.instanceOf
+import org.hamcrest.Matchers
+import org.hamcrest.Matchers.*
 import org.hamcrest.core.Is
 import org.junit.After
 import org.junit.Before
@@ -123,6 +124,25 @@ class RemindersLocalRepositoryTest {
 
         //Verify empty list is returned
         assertThat(result.data, `is`(emptyList()))
+    }
+
+    @Test
+    fun deleteReminder_addDeleteAndGetError() = runBlocking {
+        //load reminder to the database
+        val savedReminder = ReminderDTO(
+            "Title1", "Description1", "Location1",
+            1.0, 1.0
+        )
+        repository.saveReminder(savedReminder)
+
+        //delete it
+        repository.deleteReminder(savedReminder.id)
+
+        //try to get deleted reminder
+        val loadedReminder = repository.getReminder(savedReminder.id)
+
+        //Verify null is returned if you try to get deleted reminder
+        assertThat(loadedReminder, instanceOf(Result.Error::class.java))
     }
 
     private fun loadTestRemindersToDatabase(): List<ReminderDTO> {

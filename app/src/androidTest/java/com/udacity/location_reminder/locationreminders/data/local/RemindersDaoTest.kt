@@ -92,6 +92,27 @@ class RemindersDaoTest {
         assertThat(loadedReminders, `is`(emptyList()))
     }
 
+    @Test
+    fun deleteReminder_addDeleteAndTryToGet() = runBlockingTest {
+        //load reminder to the database
+        val savedReminder = ReminderDTO(
+            "Title1", "Description1", "Location1",
+            1.0, 1.0
+        )
+        database.reminderDao().saveReminder(savedReminder)
+
+        //delete it
+        database.reminderDao().deleteReminder(savedReminder.id)
+
+        //try to get deleted reminder
+        val loadedReminder = database.reminderDao().getReminderById(savedReminder.id)
+
+        //Verify null is returned if you try to get deleted reminder
+        assertThat(loadedReminder, nullValue())
+
+    }
+
+
 
     private fun loadTestRemindersToDatabase(): List<ReminderDTO> {
         val reminder1 = ReminderDTO(

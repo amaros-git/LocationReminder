@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.TaskStackBuilder
 import com.udacity.location_reminder.BuildConfig
@@ -32,6 +33,10 @@ fun sendNotification(context: Context, reminders: ArrayList<ReminderDataItem>) {
     }
 
     val intent = ReminderDescriptionActivity.newIntent(context.applicationContext, reminders)
+    Log.d("sendNotification", "received geofences")
+    reminders.forEach {
+        Log.d("sendNotification", it.toString())
+    }
 
     //create a pending intent that opens ReminderDescriptionActivity when the user clicks on the notification
     val stackBuilder = TaskStackBuilder.create(context)
@@ -40,8 +45,9 @@ fun sendNotification(context: Context, reminders: ArrayList<ReminderDataItem>) {
     val notificationPendingIntent = stackBuilder
         .getPendingIntent(getUniqueId(), PendingIntent.FLAG_UPDATE_CURRENT)
 
-    val title = if (reminders.size > 1) "Few reminders triggered" else reminders[0].title
-    val location = if (reminders.size > 1) "Few location are near" else reminders[0].location
+    Log.d("reminders", "title = ${reminders[0].title}")
+    val title = if (reminders.size > 1) "Few POIs were triggered" else reminders[0].title
+    val location = if (reminders.size > 1) "Few POIs are nearby" else reminders[0].location
 
 //    build the notification object with the data to be shown
     val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)

@@ -19,6 +19,7 @@ import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.databinding.FragmentSaveReminderBinding
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
@@ -76,11 +77,18 @@ class SaveReminderFragment : BaseFragment() {
 
                 _viewModel.saveReminder(reminder)
 
-                _viewModel.saveGeofenceAndNavigateBackIfSuccess(
+                val geofenceClient = GeofenceClient(activity!!.application)
+                geofenceClient.addGeofence(
                     reminder.id,
                     reminder.latitude!!,
                     reminder.longitude!!
                 )
+
+              /*  _viewModel.saveGeofenceAndNavigateBackIfSuccess(
+                    reminder.id,
+                    reminder.latitude!!,
+                    reminder.longitude!!
+                )*/
             }
         }
     }

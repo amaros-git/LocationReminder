@@ -60,8 +60,6 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                         Log.e(TAG, "No Geofence Trigger Found!")
                         return
                     }
-                }.onEach { geofence ->
-                    Log.d(TAG, "Received geofence with id ${geofence.requestId}")
                 }
 
                 sendNotification(geofences)
@@ -72,10 +70,10 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
         //Get the local repository instance
         val repository: ReminderDataSource by inject()
-        val triggeredReminders = ArrayList<ReminderDataItem>()
 
-        CoroutineScope(coroutineContext).launch(SupervisorJob()) {
 
+        CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
+            val triggeredReminders = ArrayList<ReminderDataItem>()
             for (i: Int in triggeringGeofences.indices) {
                 val result = repository.getReminder(triggeringGeofences[i].requestId)
                 if (result is Result.Success<ReminderDTO>) {
@@ -85,9 +83,16 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                             result.data.description,
                             result.data.location,
                             result.data.latitude,
-                            result.data.longitude
+                            result.data.longitude,
+                            result.data.id
                         )
                     )
+                }
+            }
+            if (triggeredReminders.isNotEmpty()) {
+                Log.d(TAG, "Sending geofences")
+                triggeredReminders.forEach {
+                    Log.d(TAG, it.toString())
                 }
 
                 sendNotification(this@GeofenceTransitionsJobIntentService, triggeredReminders)
