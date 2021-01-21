@@ -13,14 +13,12 @@ import com.udacity.location_reminder.R
 import com.udacity.location_reminder.ReminderDetailsView
 import com.udacity.location_reminder.databinding.ActivityReminderDescriptionBinding
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
-import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.location_reminder.utils.fadeOut
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
-import com.udacity.location_reminder.locationreminders.data.dto.Result
 
 /**
  * Activity that displays the reminder details after the user clicks on the notification
@@ -70,7 +68,7 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             view.findViewById<TextView>(R.id.description).text = reminders[i].description
             view.findViewById<TextView>(R.id.location).text = reminders[i].location
 
-            view.findViewById<Button>(R.id.KeepReminderButton).setOnClickListener {
+            view.findViewById<Button>(R.id.RemoveReminderButton).setOnClickListener {
                 CoroutineScope(coroutineContext).launch(coroutineJob) {
                     val id = reminders[i].id
                     repository.deleteReminder(id)
@@ -93,14 +91,5 @@ class ReminderDescriptionActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         coroutineJob.cancel("Activity destroyed")
-        /* GlobalScope.launch(Dispatchers.IO) {
-             reminders.forEach {
-                 Log.d(TAG, "Deleting Reminder with id ${it.id}")
-                 repository.deleteReminder(it.id)
-             }
-
-             val geofenceClient = GeofenceClient(application)
-             geofenceClient.removeGeofences(reminders.toList())
-         }*/
     }
 }

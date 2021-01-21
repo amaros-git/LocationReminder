@@ -160,16 +160,14 @@ class ReminderListFragment : BaseFragment() {
                     _viewModel.deleteAllReminders()
                     val geofenceClient = GeofenceClient(activity!!.application)
                     geofenceClient.removeAllGeofences()
-                    Log.d(TAG, "Here1")
                 }
 
                 GlobalScope.launch(Dispatchers.Main) {
                     result.await()
-                    delay(100)
-                    Log.d(TAG, "Here2")
-                    binding.refreshLayout.isRefreshing = true
+                    //delay(100) //Well, many changes are required to refresh recycler view. TODO REMOVE THIS dirty hacks
+                    //binding.refreshLayout.isRefreshing = true
                     _viewModel.loadReminders()
-                    binding.refreshLayout.isRefreshing = false
+                    //binding.refreshLayout.isRefreshing = false
                 }
             }
         }
