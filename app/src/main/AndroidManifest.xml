@@ -34,19 +34,19 @@
         -->
 
         <activity android:name="com.udacity.location_reminder.authentication.AuthenticationActivity">
-          <!--  <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>-->
-        </activity>
-
-        <activity android:name="com.udacity.location_reminder.locationreminders.RemindersActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity android:name="com.udacity.location_reminder.locationreminders.RemindersActivity" >
+          <!--  <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
         </activity>
 
         <meta-data
