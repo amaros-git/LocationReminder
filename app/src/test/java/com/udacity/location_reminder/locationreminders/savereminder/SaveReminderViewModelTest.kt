@@ -74,7 +74,7 @@ class SaveReminderViewModelTest {
     }
 
     @Test
-    fun validateEnteredData_anyReminderContainsError() {
+    fun validateEnteredData_reminderContainsError() {
         //when reminder contains any error
         val reminderLocationNull = ReminderDataItem("Title", "Description", null, 1.0, 1.0)
         val reminderTitleEmpty = ReminderDataItem("", "Description", "Location", 1.0, 1.0)

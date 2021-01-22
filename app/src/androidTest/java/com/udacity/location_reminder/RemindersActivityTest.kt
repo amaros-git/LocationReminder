@@ -7,6 +7,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.withDecorView
@@ -19,8 +20,11 @@ import com.udacity.location_reminder.locationreminders.data.local.LocalDB
 import com.udacity.location_reminder.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.location_reminder.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
+import com.udacity.location_reminder.utils.EspressoIdlingResource
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
@@ -35,6 +39,7 @@ import org.koin.test.get
 import org.koin.test.inject
 import java.lang.Thread.sleep
 
+@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 //END TO END test to black box test the app
@@ -85,7 +90,20 @@ class RemindersActivityTest :
     @After
     fun clean() {
         stopKoin()
+        runBlocking {
+            repository.deleteAllReminders()
+        }
 
+    }
+
+    @Before
+    fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
+    }
+
+    @After
+    fun unregister() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
     }
 
     @Test
@@ -122,12 +140,11 @@ class RemindersActivityTest :
         //Save reminder
         onView(withId(R.id.saveReminder)).perform(click())
 
-        //
+        //Verify title and description in Recycler view
         onView(withText("Title1")).check(matches(isDisplayed()))
         onView(withText("Description1")).check(matches(isDisplayed()))
 
         activityScenario.close()
-
     }
 
 }

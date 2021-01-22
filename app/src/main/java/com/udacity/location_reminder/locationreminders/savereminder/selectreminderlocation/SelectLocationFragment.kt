@@ -5,22 +5,20 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.annotation.NonNull
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
@@ -28,7 +26,6 @@ import com.udacity.location_reminder.databinding.FragmentSelectLocationBinding
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
-import org.koin.core.context.unloadKoinModules
 import java.util.*
 
 
@@ -45,7 +42,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     private var selectedLocationLatLng: LatLng? = null
     private var selectedLocationName = "Location"
 
-    //Use Koin to get the view model of the SaveReminder
+    private var currentMarker: Marker? = null
+
     override val _viewModel: SaveReminderViewModel by inject()
 
     private lateinit var binding: FragmentSelectLocationBinding
@@ -66,7 +64,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        locationManager = activity!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         registerLocationListener()
 
 
@@ -126,9 +124,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         }
     }
 
-    //TODO: add style to the map
     override fun onMapReady(googleMap: GoogleMap) {
-        Log.d(TAG, "onMapReady called")
         map = googleMap
 
         enableMyLocation()
@@ -141,6 +137,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         setMapLongClick(map)
 
         setPoiClick(map)
+
+        setMapStyle(map)
     }
 
     @SuppressLint("MissingPermission")
@@ -154,14 +152,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
-            Log.d(TAG, "clicked on Poi with ${poi.latLng}")
-            val poiMarker = map.addMarker(
+            currentMarker?.remove()
+
+            currentMarker = map.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
-            )
-            poiMarker.showInfoWindow()
-
+            ).apply {
+                showInfoWindow()
+            }
+            
             selectedLocationLatLng = poi.latLng
             selectedLocationName = poi.name
         }
@@ -169,7 +169,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
-            Log.d(TAG, "clicked on $latLng")
+            currentMarker?.remove()
 
             val snippet = String.format(
                 Locale.getDefault(),
@@ -178,7 +178,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
                 latLng.longitude
             )
 
-            map.addMarker(
+            currentMarker = map.addMarker(
                 MarkerOptions()
                     .position(latLng)
                     .title(getString(R.string.dropped_pin))
@@ -187,7 +187,23 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
             )
 
             selectedLocationLatLng = latLng
-            selectedLocationName = "Location" //TODO get near city name ?
+            selectedLocationName = "Custom location"
+        }
+    }
+
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            val success = map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            )
+            if (!success) {
+                Log.d(TAG, "Google Map style parsing error")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Log.e(TAG, "Can't find google map style. Error: $e")
         }
     }
 
@@ -228,7 +244,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         locationManager.removeUpdates(this)
     }
 
-    override fun onProviderEnabled(provider: String) {
+   /* override fun onProviderEnabled(provider: String) {
         Log.d(TAG, "onProviderEnabled called")
     }
 
@@ -238,7 +254,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
         Log.d(TAG, "onStatusChanged called")
-    }
+    }*/
 
     private fun validateSelectedLocation(): Boolean {
         if (null == selectedLocationLatLng) {

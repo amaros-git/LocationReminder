@@ -18,7 +18,6 @@ class FakeRemindersRepository : ReminderDataSource {
             false -> {
                 Result.Success(reminders.values.toList())
             }
-
             true -> {
                 Result.Error("Test error")
             }

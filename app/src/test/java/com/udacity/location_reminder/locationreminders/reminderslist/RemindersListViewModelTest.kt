@@ -108,7 +108,8 @@ class RemindersListViewModelTest {
         // verify ReminderListFragment shows No data image
         assertThat(viewModel.showNoData.getOrAwaitValue(), `is`(true))
 
-        //Well, cannot verify snackbar message, because its value depends on Result.Error value
+        //Verify snackbar shows ResultError test text
+        assertThat(viewModel.showSnackBar.getOrAwaitValue(), `is`("Test error"))
     }
 
     //We don't need separate test for invalidateShowNoData(), it is checked

@@ -78,10 +78,10 @@ class ReminderDescriptionActivity : AppCompatActivity() {
                 view.fadeOut() //remove reminder view
             }
 
-            /*view.findViewById<Button>(R.id.showOnMapButton).setOnClickListener {
+            view.findViewById<Button>(R.id.showOnMapButton).setOnClickListener {
                 Toast.makeText(applicationContext, "Not implemented, sorry ;)", Toast.LENGTH_SHORT)
                     .show()
-            }*/
+            }
 
             binding.remindersList.addView(view)
         }

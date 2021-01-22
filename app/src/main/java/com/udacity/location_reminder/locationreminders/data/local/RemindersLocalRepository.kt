@@ -4,6 +4,7 @@ import android.util.Log
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
+import com.udacity.location_reminder.utils.wrapEspressoIdlingResource
 import kotlinx.coroutines.*
 
 /**
@@ -23,11 +24,15 @@ class RemindersLocalRepository(
      * Get the reminders list from the local db
      * @return Result the holds a Success with all the reminders or an Error object with the error message
      */
-    override suspend fun getReminders(): Result<List<ReminderDTO>> = withContext(ioDispatcher) {
-        return@withContext try {
-            Result.Success(remindersDao.getReminders())
-        } catch (ex: Exception) {
-            Result.Error(ex.localizedMessage)
+    override suspend fun getReminders(): Result<List<ReminderDTO>> {
+        wrapEspressoIdlingResource {
+            return withContext(ioDispatcher) {
+                return@withContext try {
+                    Result.Success(remindersDao.getReminders())
+                } catch (ex: Exception) {
+                    Result.Error(ex.localizedMessage)
+                }
+            }
         }
     }
 
@@ -35,10 +40,14 @@ class RemindersLocalRepository(
      * Insert a reminder in the db.
      * @param reminder the reminder to be inserted
      */
-    override suspend fun saveReminder(reminder: ReminderDTO) =
-        withContext(ioDispatcher) {
-            remindersDao.saveReminder(reminder)
+    override suspend fun saveReminder(reminder: ReminderDTO) {
+        wrapEspressoIdlingResource {
+            withContext(ioDispatcher) {
+                remindersDao.saveReminder(reminder)
+
+            }
         }
+    }
 
     /**
      * Get a reminder by its id
@@ -62,8 +71,10 @@ class RemindersLocalRepository(
      * Deletes all the reminders in the db
      */
     override suspend fun deleteAllReminders() {
-        withContext(ioDispatcher) {
-            remindersDao.deleteAllReminders()
+        wrapEspressoIdlingResource {
+            withContext(ioDispatcher) {
+                remindersDao.deleteAllReminders()
+            }
         }
     }
 
@@ -71,8 +82,10 @@ class RemindersLocalRepository(
      * Deletes reminder from the database by id
      */
     override suspend fun deleteReminder(id: String) {
-        withContext(ioDispatcher) {
-            remindersDao.deleteReminder(id)
+        wrapEspressoIdlingResource {
+            withContext(ioDispatcher) {
+                remindersDao.deleteReminder(id)
+            }
         }
     }
 }

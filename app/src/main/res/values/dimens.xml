@@ -12,5 +12,6 @@
 
     <dimen name="regular_text_size">18sp</dimen>
     <dimen name="header_text_size">28sp</dimen>
-    <dimen name="start_margin">150dp</dimen>
+    <dimen name="start_margin">10dp</dimen>
+    <dimen name="login_button_width">160dp</dimen>
 </resources>
