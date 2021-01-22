@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -49,11 +50,14 @@ class AuthenticationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentication)
 
+        //check status
+        Log.d(TAG, "Current user = ${FirebaseAuth.getInstance().currentUser}")
+
         viewModel.authenticationState.observe(this) {
             when (it) {
                 AuthenticationViewModel.AuthenticationState.AUTHENTICATED -> {
                     Log.d(TAG, "authenticated")
-                    //
+
                     val intent = Intent(this, RemindersActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     startActivity(intent)
@@ -64,9 +68,10 @@ class AuthenticationActivity : AppCompatActivity() {
             }
         }
 
-
-        launchSignInFlow()
-
+        findViewById<Button>(R.id.loginButton).setOnClickListener {
+            Log.d(TAG, "click")
+            launchSignInFlow()
+        }
     }
 
     private fun launchSignInFlow() {

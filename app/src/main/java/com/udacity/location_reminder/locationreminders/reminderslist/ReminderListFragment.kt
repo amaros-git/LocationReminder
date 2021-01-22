@@ -8,15 +8,18 @@ import android.view.*
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
+import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.location_reminder.R
+import com.udacity.location_reminder.authentication.AuthenticationActivity
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.databinding.FragmentRemindersBinding
+import com.udacity.location_reminder.locationreminders.RemindersActivity
 import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import com.udacity.location_reminder.utils.setTitle
@@ -69,7 +72,7 @@ class ReminderListFragment : BaseFragment() {
         }
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
 
-        val settingsClient = LocationServices.getSettingsClient(activity!!)
+        val settingsClient = LocationServices.getSettingsClient(requireActivity())
         val locationSettingsResponseTask =
             settingsClient.checkLocationSettings(builder.build())
 
@@ -96,11 +99,11 @@ class ReminderListFragment : BaseFragment() {
                 }.show()
             }
         }
-        locationSettingsResponseTask.addOnCompleteListener {
+       /* locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) { //TODO what next
 
             }
-        }
+        }*/
     }
 
     //TODO
@@ -151,14 +154,21 @@ class ReminderListFragment : BaseFragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         Log.d("RemindersActivity", "onOptionsItemSelected called")
         when (item.itemId) {
-           /* android.R.id.logout -> { //TODO
-                findNavController().popBackStack()
+            R.id.logout -> {
+                Log.d(TAG, "Logging out")
+                AuthUI.getInstance()
+                    .signOut(requireContext())
+                    .addOnCompleteListener {
+                        val intent = Intent(requireContext(), AuthenticationActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        startActivity(intent)
+                    }
                 return true
-            }*/
+            }
             R.id.clearAll -> {
                 val result = GlobalScope.async {
                     _viewModel.deleteAllReminders()
-                    val geofenceClient = GeofenceClient(activity!!.application)
+                    val geofenceClient = GeofenceClient(requireActivity().application)
                     geofenceClient.removeAllGeofences()
                 }
 

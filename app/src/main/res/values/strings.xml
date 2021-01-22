@@ -53,4 +53,5 @@
     <string name="keep_button_text">Remove reminder</string>
     <string name="you_have_reminders">You have %d %s</string>
     <string name="activity_details_title">POIs nearby</string>
+    <string name="login_button">Login</string>
 </resources>
