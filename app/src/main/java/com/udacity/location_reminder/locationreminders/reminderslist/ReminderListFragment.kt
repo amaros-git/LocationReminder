@@ -20,6 +20,9 @@ import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.databinding.FragmentRemindersBinding
 import com.udacity.location_reminder.locationreminders.RemindersActivity
+import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
+import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
+import com.udacity.location_reminder.locationreminders.data.local.LocalDB
 import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import com.udacity.location_reminder.utils.setTitle
@@ -64,6 +67,21 @@ class ReminderListFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         checkIfLocationIsEnabled()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val dataSource = LocalDB.createRemindersDao(requireContext())
+            for (i in 0..100) {
+                dataSource.saveReminder(
+                    ReminderDTO(
+                        "Title$i",
+                        "Description$i",
+                        "Location$i",
+                        0.0,
+                        0.0
+                    )
+                )
+            }
+        }
     }
 
     private fun checkIfLocationIsEnabled(resolve: Boolean = true) {
@@ -166,19 +184,7 @@ class ReminderListFragment : BaseFragment() {
                 return true
             }
             R.id.clearAll -> {
-                val result = GlobalScope.async {
-                    _viewModel.deleteAllReminders()
-                    val geofenceClient = GeofenceClient(requireActivity().application)
-                    geofenceClient.removeAllGeofences()
-                }
-
-                GlobalScope.launch(Dispatchers.Main) {
-                    result.await()
-                    //delay(100) //Well, many changes are required to refresh recycler view. TODO REMOVE THIS dirty hacks
-                    //binding.refreshLayout.isRefreshing = true
-                    _viewModel.loadReminders()
-                    //binding.refreshLayout.isRefreshing = false
-                }
+                _viewModel.deleteAllReminders()
             }
         }
         return super.onOptionsItemSelected(item)

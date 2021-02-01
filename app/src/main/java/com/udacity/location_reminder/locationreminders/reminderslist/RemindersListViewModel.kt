@@ -7,10 +7,11 @@ import com.udacity.location_reminder.base.BaseViewModel
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import kotlinx.coroutines.launch
 
 class RemindersListViewModel(
-    app: Application,
+    private val app: Application,
     private val dataSource: ReminderDataSource
 ) : BaseViewModel(app) {
     // list that holds the reminder data to be displayed on the UI
@@ -43,7 +44,7 @@ class RemindersListViewModel(
                     remindersList.value = dataList
                 }
                 is Result.Error ->
-                    showSnackBar.value = result.message
+                    showSnackBar.value = result.message!!
             }
 
             //check if no data has to be shown
@@ -59,8 +60,18 @@ class RemindersListViewModel(
     }
 
     fun deleteAllReminders() {
+
+
+
         viewModelScope.launch {
+            showLoading.value = true
+
             dataSource.deleteAllReminders()
+            val geofenceClient = GeofenceClient(app)
+            geofenceClient.removeAllGeofences()
+            loadReminders()
+
+            showLoading.value = false
         }
     }
 }

@@ -26,14 +26,14 @@ class RemindersActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminders)
 
-        val reminders = ArrayList<String>()
+        /*val reminders = ArrayList<String>()
 
         reminders.add("Test1")
 
 
         Log.d("Test", "${reminders.size}")
 
-        Log.d("Test", reminders[0])
+        Log.d("Test", reminders[0])*/
 
         /*Log.d("reminders", "title = ${reminders[0].title}")
         val title = if (reminders.size > 0) "Few reminders triggered" else reminders[0].title

@@ -65,43 +65,38 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         binding.saveReminder.setOnClickListener {
-            Log.d(TAG, "Save button clicked")
-            val title = _viewModel.reminderTitle.value
-            val description = _viewModel.reminderDescription.value
-            val location = _viewModel.reminderSelectedLocationStr.value
-            val latitude = _viewModel.latitude.value
-            val longitude = _viewModel.longitude.value
+            saveReminder()
+        }
+    }
 
-            val reminder = ReminderDataItem(title, description, location, latitude, longitude)
-            if (_viewModel.validateEnteredData(reminder)) {
+    private fun saveReminder() {
+        val title = _viewModel.reminderTitle.value
+        val description = _viewModel.reminderDescription.value
+        val location = _viewModel.reminderSelectedLocationStr.value
+        val latitude = _viewModel.latitude.value
+        val longitude = _viewModel.longitude.value
 
-                _viewModel.saveReminder(reminder)
+        val reminder = ReminderDataItem(title, description, location, latitude, longitude)
+        if (_viewModel.validateEnteredData(reminder)) {
 
-                val geofenceClient = GeofenceClient(activity!!.application)
-                geofenceClient.addGeofence(
-                    reminder.id,
-                    reminder.latitude!!,
-                    reminder.longitude!!
-                )
+            _viewModel.saveReminder(reminder)
 
-              /*  _viewModel.saveGeofenceAndNavigateBackIfSuccess(
-                    reminder.id,
-                    reminder.latitude!!,
-                    reminder.longitude!!
-                )*/
-            }
+            val geofenceClient = GeofenceClient(requireActivity().application)
+            geofenceClient.addGeofence(
+                reminder.id,
+                reminder.latitude!!,
+                reminder.longitude!!
+            )
         }
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d(TAG, "onStart called")
         checkPermissionsAndRequestIfMissing()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "onDestroy called")
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
 
