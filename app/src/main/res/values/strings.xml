@@ -58,4 +58,6 @@
     <string name="show_on_map_button">Show on map</string>
     <string name="login_with_email">Login with email</string>
     <string name="google_account">Google account</string>
+    <string name="button_add_new_reminder">Button add new reminder</string>
+    <string name="button_save_reminder">Button save reminder</string>
 </resources>

@@ -44,88 +44,40 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
     private val TAG = GeofenceBroadcastReceiver::class.java.simpleName
 
+    companion object {
+        const val GEOFENCE_ERROR_EXTRA = "geofenceError"
+    }
+
 
     override fun onReceive(context: Context, intent: Intent) {
+        val geofencingEvent = GeofencingEvent.fromIntent(intent)
 
-        Log.d(TAG, "onReceive called")
+        if (geofencingEvent.hasError()) {
+            val errorString = errorMessage(context, geofencingEvent.errorCode)
+            Log.e(TAG, "geofence error [${geofencingEvent.errorCode}]: $errorString")
+
+            intent.putExtra(GEOFENCE_ERROR_EXTRA, errorString)
+        }
 
         GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
-
-
-        /*if (intent.action == ACTION_GEOFENCE_EVENT) {
-            val geofencingEvent = GeofencingEvent.fromIntent(intent)
-
-            if (geofencingEvent.hasError()) {
-                val errorMessage = errorMessage(context, geofencingEvent.errorCode)
-                Log.e(TAG, errorMessage)
-                return
-            }
-
-            if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                Log.v(TAG, context.getString(R.string.geofence_entered))
-
-                //TODO rework to the loop, because if more than one ?
-                val fenceIdList = when {
-                    geofencingEvent.triggeringGeofences.isNotEmpty() ->
-                        geofencingEvent.triggeringGeofences
-                    else -> {
-                        Log.e(TAG, "No Geofence Trigger Found!")
-                        return
-                    }
-                }.onEach { geofence ->
-                    Log.d(TAG, "Received geofence with id ${geofence.requestId}")
-                }
-              *//*  //TODO rework. Get all from database and compare ?
-                // Check geofence against the constants listed in GeofenceUtil.kt to see if the
-                // user has entered any of the locations we track for geofences.
-                val foundIndex = GeofencingConstants.LANDMARK_DATA.indexOfFirst {
-                    it.id == fenceId
-                }
-
-                // Unknown Geofences aren't helpful to us
-                if ( -1 == foundIndex ) {
-                    Log.e(TAG, "Unknown Geofence: Abort Mission")
-                    return
-                }*//*
-*//*
-                Log.d(TAG, "Entered geofence")
-
-                val notificationManager = ContextCompat.getSystemService(
-                    context,
-                    NotificationManager::class.java
-                ) as NotificationManager
-
-                notificationManager.sendGeofenceEnteredNotification(
-                    context, foundIndex
-                )*//*
-            }
-        }*/
-    }
-/*
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        TODO("Not yet implemented")
     }
 
-    override fun onLowMemory() {
-        TODO("Not yet implemented")
-    }*/
-}
-
-/**
- * Returns the error string for a geofencing error code.
- */
-fun errorMessage(context: Context, errorCode: Int): String {
-    val resources = context.resources
-    return when (errorCode) {
-        GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE -> resources.getString(
-            R.string.geofence_not_available
-        )
-        GeofenceStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES -> resources.getString(
-            R.string.geofence_too_many_geofences
-        )
-        GeofenceStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS -> resources.getString(
-            R.string.geofence_too_many_pending_intents
-        )
-        else -> resources.getString(R.string.unknown_geofence_error)
+    /**
+     * Returns the error string for a geofencing error code.
+     */
+    private fun errorMessage(context: Context, errorCode: Int): String {
+        val resources = context.resources
+        return when (errorCode) {
+            GeofenceStatusCodes.GEOFENCE_NOT_AVAILABLE -> resources.getString(
+                R.string.geofence_not_available
+            )
+            GeofenceStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES -> resources.getString(
+                R.string.geofence_too_many_geofences
+            )
+            GeofenceStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS -> resources.getString(
+                R.string.geofence_too_many_pending_intents
+            )
+            else -> resources.getString(R.string.unknown_geofence_error)
+        }
     }
 }

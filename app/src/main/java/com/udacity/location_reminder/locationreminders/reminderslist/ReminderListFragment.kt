@@ -68,7 +68,7 @@ class ReminderListFragment : BaseFragment() {
         super.onStart()
         checkIfLocationIsEnabled()
 
-        GlobalScope.launch(Dispatchers.IO) {
+        /*GlobalScope.launch(Dispatchers.IO) {
             val dataSource = LocalDB.createRemindersDao(requireContext())
             for (i in 0..100) {
                 dataSource.saveReminder(
@@ -81,7 +81,7 @@ class ReminderListFragment : BaseFragment() {
                     )
                 )
             }
-        }
+        }*/
     }
 
     private fun checkIfLocationIsEnabled(resolve: Boolean = true) {

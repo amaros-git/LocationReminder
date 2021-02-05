@@ -40,19 +40,10 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     override fun onHandleWork(intent: Intent) {
-        Log.d(TAG, "onHandleWork called")
-
         if (intent.action == ACTION_GEOFENCE_EVENT) {
             val geofencingEvent = GeofencingEvent.fromIntent(intent)
 
-            if (geofencingEvent.hasError()) {
-                Log.e(TAG, "geofence error code ${geofencingEvent.errorCode}")
-                return
-            }
-
             if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                Log.d(TAG, "entered geofence")
-
                 val geofences = when {
                     geofencingEvent.triggeringGeofences.isNotEmpty() ->
                         geofencingEvent.triggeringGeofences
@@ -70,7 +61,6 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
         //Get the local repository instance
         val repository: ReminderDataSource by inject()
-
 
         CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
             val triggeredReminders = ArrayList<ReminderDataItem>()
@@ -98,25 +88,6 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                 sendNotification(this@GeofenceTransitionsJobIntentService, triggeredReminders)
             }
         }
-//        Interaction to the repository has to be through a coroutine scope
-      /*  CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
-            //get the reminder with the request id
-            val result = remindersLocalRepository.getReminder(requestId)
-            if (result is Result.Success<ReminderDTO>) {
-                val reminderDTO = result.data
-                //send a notification to the user with the reminder details
-                sendNotification(
-                    this@GeofenceTransitionsJobIntentService, ReminderDataItem(
-                        reminderDTO.title,
-                        reminderDTO.description,
-                        reminderDTO.location,
-                        reminderDTO.latitude,
-                        reminderDTO.longitude,
-                        reminderDTO.id
-                    )
-                )
-            }
-        }*/
     }
 
 }

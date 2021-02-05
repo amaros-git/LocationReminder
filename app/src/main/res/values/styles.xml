@@ -27,6 +27,14 @@
         <item name="android:textColor">@color/black</item>
     </style>
 
+    <style name="HeadingTextStyle">
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/text_size_large</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+
     <style name="RegularTextStyleLight" parent="RegularTextStyle">
         <item name="android:textColor">@color/grey</item>
         <item name="android:textSize">@dimen/text_size_normal</item>

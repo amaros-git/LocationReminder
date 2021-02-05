@@ -13,6 +13,7 @@ import com.udacity.location_reminder.R
 import com.udacity.location_reminder.ReminderDetailsView
 import com.udacity.location_reminder.databinding.ActivityReminderDescriptionBinding
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.location_reminder.utils.fadeOut
@@ -49,6 +50,15 @@ class ReminderDescriptionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //check if we have geofence error
+        val geofenceError =
+            intent.extras?.get(GeofenceBroadcastReceiver.GEOFENCE_ERROR_EXTRA) as String?
+        if (null != geofenceError) {
+            showError(geofenceError)
+            return
+        }
+
         binding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_reminder_description
@@ -85,6 +95,10 @@ class ReminderDescriptionActivity : AppCompatActivity() {
 
             binding.remindersList.addView(view)
         }
+    }
+
+    private fun showError(error: String) {
+        Toast.makeText(applicationContext, error, Toast.LENGTH_LONG).show()
     }
 
 

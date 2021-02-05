@@ -61,7 +61,6 @@ class AuthenticationActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.loginButton).setOnClickListener {
-            Log.d(TAG, "click")
             launchSignInFlow()
         }
     }

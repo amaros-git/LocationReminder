@@ -64,16 +64,16 @@
                 android:id="@+id/RemoveReminderButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/padding_small"
-                android:layout_marginLeft="@dimen/padding_small"
+                android:layout_marginStart="@dimen/margin_tiny"
+                android:layout_marginLeft="@dimen/margin_tiny"
                 android:layout_marginTop="@dimen/padding_large"
-                android:layout_marginBottom="@dimen/padding_small"
+                android:layout_marginBottom="@dimen/margin_tiny"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="4dp"
+                android:padding="@dimen/padding_tiny"
                 android:text="@string/remove_button_text"
                 android:textColor="@color/colorAccent"
-                android:textSize="18sp"
+                android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -83,19 +83,21 @@
                 android:id="@+id/showOnMapButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/padding_small"
-                android:layout_marginRight="@dimen/padding_small"
+                android:layout_marginEnd="@dimen/margin_tiny"
+                android:layout_marginRight="@dimen/margin_tiny"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="4dp"
+                android:padding="@dimen/padding_small"
                 android:text="@string/show_on_map_button"
                 android:textColor="@color/colorAccent"
-                android:textSize="18sp"
+                android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
                 app:layout_constraintBaseline_toBaselineOf="@+id/RemoveReminderButton"
                 app:layout_constraintEnd_toEndOf="parent" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.cardview.widget.CardView>
+
 </layout>
