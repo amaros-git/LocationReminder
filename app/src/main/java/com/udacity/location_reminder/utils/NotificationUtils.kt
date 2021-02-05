@@ -11,11 +11,13 @@ import androidx.core.app.TaskStackBuilder
 import com.udacity.location_reminder.BuildConfig
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.locationreminders.ReminderDescriptionActivity
+import com.udacity.location_reminder.locationreminders.data.dto.Result
+import com.udacity.location_reminder.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 
 private const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
 
-fun sendNotification(context: Context, reminders: ArrayList<ReminderDataItem>) {
+fun sendNotification(context: Context, result: Result<ArrayList<ReminderDataItem>>) {
     val notificationManager = context
         .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -32,11 +34,7 @@ fun sendNotification(context: Context, reminders: ArrayList<ReminderDataItem>) {
         notificationManager.createNotificationChannel(channel)
     }
 
-    val intent = ReminderDescriptionActivity.newIntent(context.applicationContext, reminders)
-    Log.d("sendNotification", "received geofences")
-    reminders.forEach {
-        Log.d("sendNotification", it.toString())
-    }
+    val intent = ReminderDescriptionActivity.newIntent(context.applicationContext, result)
 
     //create a pending intent that opens ReminderDescriptionActivity when the user clicks on the notification
     val stackBuilder = TaskStackBuilder.create(context)
@@ -45,15 +43,11 @@ fun sendNotification(context: Context, reminders: ArrayList<ReminderDataItem>) {
     val notificationPendingIntent = stackBuilder
         .getPendingIntent(getUniqueId(), PendingIntent.FLAG_UPDATE_CURRENT)
 
-    Log.d("reminders", "title = ${reminders[0].title}")
-    val title = if (reminders.size > 1) "Few POIs were triggered" else reminders[0].title
-    val location = if (reminders.size > 1) "Few POIs are nearby" else reminders[0].location
-
-//    build the notification object with the data to be shown
+    // build the notification object with the data to be shown
     val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
         .setSmallIcon(R.mipmap.ic_launcher)
-        .setContentTitle(title)
-        .setContentText(location)
+        .setContentTitle(context.getString(R.string.notification_title))
+        .setContentText(context.getString(R.string.notification_content))
         .setContentIntent(notificationPendingIntent)
         .setAutoCancel(true)
         .build()

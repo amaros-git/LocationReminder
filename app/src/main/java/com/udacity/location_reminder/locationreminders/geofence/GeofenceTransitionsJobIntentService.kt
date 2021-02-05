@@ -5,15 +5,14 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
 import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
-import com.google.android.gms.location.LocationServices
+import com.udacity.location_reminder.R
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
-import com.udacity.location_reminder.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderFragment.Companion.ACTION_GEOFENCE_EVENT
-import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.location_reminder.utils.sendNotification
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
@@ -31,6 +30,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         private const val JOB_ID = 573
 
         fun enqueueWork(context: Context, intent: Intent) {
+
             enqueueWork(
                 context,
                 GeofenceTransitionsJobIntentService::class.java, JOB_ID,
@@ -43,6 +43,13 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         if (intent.action == ACTION_GEOFENCE_EVENT) {
             val geofencingEvent = GeofencingEvent.fromIntent(intent)
 
+            val geofenceError =
+                intent.extras?.get(EXTRA_GeofenceError) as String?
+            geofenceError?.let {
+                sendNotification(this@GeofenceTransitionsJobIntentService, Result.Error(it))
+                return
+            }
+            //else
             if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 val geofences = when {
                     geofencingEvent.triggeringGeofences.isNotEmpty() ->
@@ -52,17 +59,21 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                         return
                     }
                 }
-
-                sendNotification(geofences)
+                CoroutineScope(coroutineContext).launch(SupervisorJob()) {
+                    val reminders: ArrayList<ReminderDataItem> = getReminders(geofences)
+                    sendNotification(
+                        this@GeofenceTransitionsJobIntentService,
+                        Result.Success(reminders)
+                    )
+                }
             }
         }
     }
 
-    private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        //Get the local repository instance
+    private suspend fun getReminders(triggeringGeofences: List<Geofence>): ArrayList<ReminderDataItem> {
         val repository: ReminderDataSource by inject()
 
-        CoroutineScope(coroutineContext).launch(SupervisorJob()) { //TODO shall be Job() ?
+        return withContext(Dispatchers.IO) {
             val triggeredReminders = ArrayList<ReminderDataItem>()
             for (i: Int in triggeringGeofences.indices) {
                 val result = repository.getReminder(triggeringGeofences[i].requestId)
@@ -79,15 +90,8 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                     )
                 }
             }
-            if (triggeredReminders.isNotEmpty()) {
-                Log.d(TAG, "Sending geofences")
-                triggeredReminders.forEach {
-                    Log.d(TAG, it.toString())
-                }
 
-                sendNotification(this@GeofenceTransitionsJobIntentService, triggeredReminders)
-            }
+            return@withContext triggeredReminders
         }
     }
-
 }

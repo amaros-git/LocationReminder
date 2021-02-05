@@ -52,7 +52,7 @@
     <string name="show_on_map_button_text">Show on Map</string>
     <string name="remove_button_text">Remove reminder</string>
     <string name="you_have_reminders">You have %d %s</string>
-    <string name="activity_details_title">POIs nearby</string>
+    <string name="activity_details_title">POI nearby</string>
     <string name="login_button">Login</string>
     <string name="picture_with_a_map_in_the_hand">Picture with a map in the hand</string>
     <string name="show_on_map_button">Show on map</string>
@@ -60,4 +60,6 @@
     <string name="google_account">Google account</string>
     <string name="button_add_new_reminder">Button add new reminder</string>
     <string name="button_save_reminder">Button save reminder</string>
+    <string name="notification_title">LocationReminder</string>
+    <string name="notification_content">You are near interested POI</string>
 </resources>

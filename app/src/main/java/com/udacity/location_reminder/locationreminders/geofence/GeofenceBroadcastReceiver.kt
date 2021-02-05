@@ -40,14 +40,12 @@ import org.koin.android.ext.android.inject
  *
  */
 
+
+const val EXTRA_GeofenceError = "EXTRA_GeofenceError"
+
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
     private val TAG = GeofenceBroadcastReceiver::class.java.simpleName
-
-    companion object {
-        const val GEOFENCE_ERROR_EXTRA = "geofenceError"
-    }
-
 
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -55,8 +53,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         if (geofencingEvent.hasError()) {
             val errorString = errorMessage(context, geofencingEvent.errorCode)
             Log.e(TAG, "geofence error [${geofencingEvent.errorCode}]: $errorString")
-
-            intent.putExtra(GEOFENCE_ERROR_EXTRA, errorString)
+            intent.putExtra(EXTRA_GeofenceError, errorString)
         }
 
         GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
