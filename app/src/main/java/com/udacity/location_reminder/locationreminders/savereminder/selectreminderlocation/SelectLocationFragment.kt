@@ -4,14 +4,20 @@ package com.udacity.location_reminder.locationreminders.savereminder.selectremin
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -19,6 +25,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.snackbar.Snackbar
+import com.udacity.location_reminder.BuildConfig
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
@@ -33,8 +41,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private val TAG = SelectLocationFragment::class.java.simpleName
 
-    private val REQUEST_LOCATION_PERMISSION = 1
-
     private lateinit var map: GoogleMap
 
     private lateinit var locationManager: LocationManager
@@ -48,6 +54,46 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     private lateinit var binding: FragmentSelectLocationBinding
 
+    private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+
+    //When navigate back showing Snackbar with an action, on the different screen app crashes
+    //with "not attached to Activity". Thus I will remove Snackbar once this Fragment is destroyed
+    private var snackBarGoToSettings: Snackbar? = null
+
+    @SuppressLint("NewApi")
+    private val startForForegroundLocationPermissionResult = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { result ->
+        Log.d(TAG, "foreground permission result = $result")
+        if (result) { //check if background permissions are provided
+            if ((runningQOrLater) && (!isBackgroundLocationPermissionAllowed())) {
+                requestBackGroundLocationPermission()
+            }
+            enableMyLocation()
+        } else {
+            snackBarGoToSettings = showToastWithSettingsAction(
+                binding.root,
+                R.string.location_required_error
+            ).apply {
+                show()
+            }
+        }
+    }
+
+    private val startForBackgroundLocationPermissionResult = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { result ->
+        Log.d(TAG, "background permission result = $result")
+        if (!result) {
+            snackBarGoToSettings = showToastWithSettingsAction(
+                binding.root,
+                R.string.background_permission_denied_explanation
+            ).apply {
+                show()
+            }
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -58,14 +104,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
 
+        locationManager =
+            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-        locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        registerLocationListener()
 
 
         binding.saveLocationButton.setOnClickListener {
@@ -82,6 +128,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     override fun onDestroy() {
         super.onDestroy()
         locationManager.removeUpdates(this)
+
+        snackBarGoToSettings?.dismiss()
     }
 
     private fun onLocationSelected(location: LatLng) {
@@ -121,22 +169,43 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     @SuppressLint("MissingPermission")
     private fun registerLocationListener() {
-        if (isPermissionGranted()) {
+        if (isForegroundLocationPermissionAllowed()) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 10f, this)
-        } else {
-            requestForPermission()
         }
     }
 
+    private fun isForegroundLocationPermissionAllowed(): Boolean =
+        PackageManager.PERMISSION_GRANTED == checkSelfPermission(
+            requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
+    private fun requestForeGroundLocationPermission() {
+        startForForegroundLocationPermissionResult
+            .launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun isBackgroundLocationPermissionAllowed(): Boolean =
+        PackageManager.PERMISSION_GRANTED == checkSelfPermission(
+            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun requestBackGroundLocationPermission() {
+        startForBackgroundLocationPermissionResult
+            .launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+    }
+
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
-        enableMyLocation()
 
         with(map.uiSettings) {
             isZoomControlsEnabled = true
             isCompassEnabled = true
         }
+
+        enableMyLocation()
 
         setMapLongClick(map)
 
@@ -147,11 +216,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     @SuppressLint("MissingPermission")
     private fun enableMyLocation() {
-        if (isPermissionGranted()) {
-            map.isMyLocationEnabled = true
-        } else {
-            requestForPermission()
+        if (!isForegroundLocationPermissionAllowed()) {
+            requestForeGroundLocationPermission()
+            return
         }
+        registerLocationListener()
+        map.isMyLocationEnabled = true
     }
 
     private fun setPoiClick(map: GoogleMap) {
@@ -165,7 +235,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
             ).apply {
                 showInfoWindow()
             }
-            
+
             selectedLocationLatLng = poi.latLng
             selectedLocationName = poi.name
         }
@@ -211,35 +281,24 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         }
     }
 
-    private fun requestForPermission() {
-        requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            REQUEST_LOCATION_PERMISSION
-        )
-    }
-
-    private fun isPermissionGranted(): Boolean {
-        return checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                enableMyLocation()
-                registerLocationListener()
+    private fun showToastWithSettingsAction(
+        view: View,
+        textRId: Int,
+        length: Int = Snackbar.LENGTH_LONG
+    ): Snackbar {
+        return Snackbar.make(view, textRId, length).apply {
+            setAction(R.string.settings) {
+                // Displays App settings screen.
+                startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
             }
         }
     }
 
     override fun onLocationChanged(location: Location) {
-        Log.d(TAG, "onLocationChanged called")
         val latLng = LatLng(location.latitude, location.longitude)
         val zoomLevel = 12.0f
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
