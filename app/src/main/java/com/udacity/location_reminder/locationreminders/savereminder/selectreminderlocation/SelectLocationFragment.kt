@@ -70,13 +70,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
         binding.saveLocationButton.setOnClickListener {
             if (null == selectedLocationLatLng) {
-                _viewModel.showToast.value = "Please select location"
+                _viewModel.showToast.value = getString(R.string.please_select_location)
             } else {
                 onLocationSelected(selectedLocationLatLng!!)
             }
         }
 
         return binding.root
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        locationManager.removeUpdates(this)
     }
 
     private fun onLocationSelected(location: LatLng) {
@@ -89,7 +94,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         }
 
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.map_options, menu)
@@ -243,18 +247,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         //unregister, we need the current location only once
         locationManager.removeUpdates(this)
     }
-
-   /* override fun onProviderEnabled(provider: String) {
-        Log.d(TAG, "onProviderEnabled called")
-    }
-
-    override fun onProviderDisabled(provider: String) {
-        Log.d(TAG, "onProviderDisabled called")
-    }
-
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        Log.d(TAG, "onStatusChanged called")
-    }*/
 
     private fun validateSelectedLocation(): Boolean {
         if (null == selectedLocationLatLng) {

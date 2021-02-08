@@ -5,12 +5,14 @@ import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
 import com.google.android.material.snackbar.Snackbar
@@ -23,6 +25,7 @@ import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+
 
 class SaveReminderFragment : BaseFragment() {
 
@@ -103,6 +106,7 @@ class SaveReminderFragment : BaseFragment() {
         snackBarGoToSettings?.dismiss()
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun checkPermissionsAndRequestIfMissing() {
         if (!isForegroundLocationPermissionAllowed()) {
             requestForegroundLocationPermission()
@@ -116,7 +120,7 @@ class SaveReminderFragment : BaseFragment() {
             requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
         )
 
-    @TargetApi(29)
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun isBackgroundLocationPermissionAllowed(): Boolean {
         return if (runningQOrLater) {
             PackageManager.PERMISSION_GRANTED == checkSelfPermission(
@@ -145,22 +149,12 @@ class SaveReminderFragment : BaseFragment() {
     //On Android 10+ (Q) toi use geofences we need to have the background permission as well.
     //On the Android 10+ I need to ask ACCESS_FINE_LOCATION and then ACCESS_BACKGROUND_LOCATION,
     //Only in such case I can get screen to allow to use set All the time permission
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-       /* Log.d(TAG, "requestCode = $requestCode")
-
-        Log.d(TAG, "received permissions:")
-        permissions.forEach {
-            Log.d(TAG, it)
-        }
-
-        Log.d(TAG, "received grantResults:")
-        grantResults.forEach {
-            Log.d(TAG, it.toString())
-        }*/
 
         if (grantResults.isEmpty()) {
             return
@@ -168,14 +162,14 @@ class SaveReminderFragment : BaseFragment() {
 
         when (requestCode) {
             REQUEST_FOREGROUND_PERMISSION_REQUEST_CODE -> {
-                if ((grantResults[0] == PackageManager.PERMISSION_GRANTED) &&
-                    !isBackgroundLocationPermissionAllowed()
-                ) {
-                    requestBackgroundLocationPermission()
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (!isBackgroundLocationPermissionAllowed()) {
+                        requestBackgroundLocationPermission()
+                    }
                 } else {
                     snackBarGoToSettings = showToastWithSettingsAction(
                         binding.root,
-                        R.string.permission_denied_explanation
+                        R.string.location_required_error
                     ).apply {
                         show()
                     }
@@ -200,7 +194,6 @@ class SaveReminderFragment : BaseFragment() {
         textRId: Int,
         length: Int = Snackbar.LENGTH_INDEFINITE
     ): Snackbar {
-        Log.d(TAG, "isAdded = $isAdded")
         return Snackbar.make(view, textRId, length).apply {
             setAction(R.string.settings) {
                 // Displays App settings screen.
@@ -218,9 +211,6 @@ class SaveReminderFragment : BaseFragment() {
             "LocationReminder.action.ACTION_GEOFENCE_EVENT"
     }
 }
-
-private const val LOCATION_PERM_INDEX = 0
-private const val BACKGROUND_LOCATION_PERM_INDEX = 1
 
 private const val REQUEST_FOREGROUND_PERMISSION_REQUEST_CODE = 34
 private const val REQUEST_BACKGROUND_PERMISSION_REQUEST_CODE = 33

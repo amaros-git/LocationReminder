@@ -10,10 +10,12 @@ import com.udacity.location_reminder.locationreminders.data.dto.Result
 import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import kotlinx.coroutines.launch
 
+
 class RemindersListViewModel(
     private val app: Application,
     private val dataSource: ReminderDataSource
 ) : BaseViewModel(app) {
+
     // list that holds the reminder data to be displayed on the UI
     val remindersList = MutableLiveData<List<ReminderDataItem>>()
 
@@ -60,15 +62,49 @@ class RemindersListViewModel(
     }
 
     fun deleteAllReminders() {
-
-
-
+        showLoading.value = true
         viewModelScope.launch {
-            showLoading.value = true
-
             dataSource.deleteAllReminders()
             val geofenceClient = GeofenceClient(app)
             geofenceClient.removeAllGeofences()
+            loadReminders()
+
+            showLoading.value = false
+        }
+    }
+
+    fun deleteReminder(reminderId: String) {
+        showLoading.value = true
+        viewModelScope.launch {
+            dataSource.deleteReminder(reminderId)
+
+            val geofenceClient = GeofenceClient(app)
+            geofenceClient.removeGeofences(listOf(reminderId))
+
+            loadReminders()
+
+            showLoading.value = false
+        }
+    }
+
+    /**
+     * id of restored reminder is re-generated
+     */
+    fun restoreDeletedReminder(deletedReminder: ReminderDataItem) {
+        showLoading.value = true
+        viewModelScope.launch {
+            val reminder = ReminderDTO(
+                deletedReminder.title!!,
+                deletedReminder.description,
+                deletedReminder.location,
+                deletedReminder.latitude!!,
+                deletedReminder.longitude!!
+            )
+            dataSource.saveReminder(reminder)
+
+            val geofenceClient = GeofenceClient(app)
+            geofenceClient.addGeofence(reminder.id, reminder.latitude, reminder.longitude)
+
             loadReminders()
 
             showLoading.value = false

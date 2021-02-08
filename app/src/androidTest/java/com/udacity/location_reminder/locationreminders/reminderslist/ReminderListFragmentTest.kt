@@ -6,7 +6,6 @@ import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -37,7 +36,6 @@ import org.mockito.Mockito.verify
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
-//UI Testing
 @MediumTest
 class ReminderListFragmentTest : AutoCloseKoinTest() {
 
@@ -83,10 +81,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
     }
 
     @Test
-    fun clickAddReminder_navigateToSaveReminderFragment() {
-        val viewModel: RemindersListViewModel by inject()
-
-
+    fun clickAddReminder_clickAndNavigateToSaveReminderFragment() {
         //Start fragment
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
         val navController = Mockito.mock(NavController::class.java)
@@ -103,7 +98,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
     }
 
     @Test
-    fun addReminder_reminderIsDisplayedInRecyclerView() {
+    fun addReminder_addedReminderIsShownInRecyclerView() {
         //Add reminder to the repository
         val reminder = ReminderDTO("Title1", "Description1", "Location1", 1.0, 1.0)
         runBlockingTest {
@@ -119,12 +114,12 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
 
     @Test
     fun remindersRepositoryIsEmpty_checkIfNoDataViewIsShown() {
-        //Start fragment. Because we clear repository in @After, it will be empty
+        //Start fragment. Because we clear repository in @After,
+        //it will be empty on this method start
         launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
         //Verify if NO Data Image is shown
         onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
-
     }
 }
 

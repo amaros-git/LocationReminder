@@ -4,6 +4,7 @@ import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
 
+
 class FakeRemindersRepository : ReminderDataSource {
 
     private val reminders = LinkedHashMap<String, ReminderDTO>()
@@ -19,7 +20,6 @@ class FakeRemindersRepository : ReminderDataSource {
             false -> {
                 Result.Success(reminders.values.toList())
             }
-
             true -> {
                 Result.Error("Test error")
             }
@@ -29,7 +29,6 @@ class FakeRemindersRepository : ReminderDataSource {
     override suspend fun saveReminder(reminder: ReminderDTO) {
         reminders[reminder.id] = reminder
     }
-
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
         val reminder = reminders[id] ?: return Result.Error("Test error")

@@ -1,24 +1,18 @@
 package com.udacity.location_reminder.locationreminders.reminderslist
 
-import android.app.Application
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.udacity.location_reminder.R
-import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.locationreminders.MainCoroutineRule
 import com.udacity.location_reminder.locationreminders.data.FakeRemindersRepository
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.getOrAwaitValue
-import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.nullValue
-import org.hamcrest.core.Is
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -26,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
 import org.robolectric.annotation.Config
+
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -78,10 +73,10 @@ class RemindersListViewModelTest {
         //verify showLoading is false
         assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(false))
 
-        //verify saved in fillDataSource() data are the same as in remindersList LiveData
+        //verify loaded data size is the same as the size of remindersList LiveData
         assertThat(viewModel.remindersList.getOrAwaitValue().size, `is`(reminderDataItems.size))
 
-        // verify we show actual data
+        // verify we show data
         assertThat(viewModel.showNoData.getOrAwaitValue(), `is`(false))
     }
 
@@ -111,11 +106,6 @@ class RemindersListViewModelTest {
         //Verify snackbar shows ResultError test text
         assertThat(viewModel.showSnackBar.getOrAwaitValue(), `is`("Test error"))
     }
-
-    //We don't need separate test for invalidateShowNoData(), it is checked
-    //in the tests of loadReminders()
-    /*@Test
-    fun invalidateShowNoData_invalidData() {}*/
 
     private fun fillDataSource(): List<ReminderDataItem> {
         val reminder1 = ReminderDTO(

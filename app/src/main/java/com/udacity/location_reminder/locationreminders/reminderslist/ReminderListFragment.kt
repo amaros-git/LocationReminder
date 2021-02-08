@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.databinding.DataBindingUtil
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
@@ -19,25 +19,21 @@ import com.udacity.location_reminder.authentication.AuthenticationActivity
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
 import com.udacity.location_reminder.databinding.FragmentRemindersBinding
-import com.udacity.location_reminder.locationreminders.RemindersActivity
-import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
-import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
-import com.udacity.location_reminder.locationreminders.data.local.LocalDB
-import com.udacity.location_reminder.locationreminders.geofence.GeofenceClient
 import com.udacity.location_reminder.utils.setDisplayHomeAsUpEnabled
 import com.udacity.location_reminder.utils.setTitle
 import com.udacity.location_reminder.utils.setup
-import kotlinx.coroutines.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class ReminderListFragment : BaseFragment() {
 
     private val TAG = ReminderListFragment::class.java.simpleName
 
-    //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
 
     private lateinit var binding: FragmentRemindersBinding
+
+    private lateinit var adapterReminders: RemindersListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +45,7 @@ class ReminderListFragment : BaseFragment() {
                 R.layout.fragment_reminders, container, false
             )
         binding.viewModel = _viewModel
+        binding.lifecycleOwner = this
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(false)
@@ -67,21 +64,6 @@ class ReminderListFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         checkIfLocationIsEnabled()
-
-        /*GlobalScope.launch(Dispatchers.IO) {
-            val dataSource = LocalDB.createRemindersDao(requireContext())
-            for (i in 0..100) {
-                dataSource.saveReminder(
-                    ReminderDTO(
-                        "Title$i",
-                        "Description$i",
-                        "Location$i",
-                        0.0,
-                        0.0
-                    )
-                )
-            }
-        }*/
     }
 
     private fun checkIfLocationIsEnabled(resolve: Boolean = true) {
@@ -117,14 +99,8 @@ class ReminderListFragment : BaseFragment() {
                 }.show()
             }
         }
-       /* locationSettingsResponseTask.addOnCompleteListener {
-            if (it.isSuccessful) { //TODO what next
-
-            }
-        }*/
     }
 
-    //TODO
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
@@ -134,43 +110,40 @@ class ReminderListFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.lifecycleOwner = this
+
         setupRecyclerView()
+
         binding.addReminderFAB.setOnClickListener {
-            Log.d(TAG, "Add button clicked")
             navigateToAddReminder()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        //load the reminders list on the ui
+
         _viewModel.loadReminders()
     }
 
     private fun navigateToAddReminder() {
-       /* //use the navigationCommand live data to navigate between the fragments
         _viewModel.navigationCommand.postValue(
             NavigationCommand.To(
                 ReminderListFragmentDirections.toSaveReminder()
             )
-        )*/
-        findNavController().navigate(ReminderListFragmentDirections.toSaveReminder())
-        /*_viewModel.navigationCommand.value = NavigationCommand.To(
-            ReminderListFragmentDirections.toSaveReminder()
-        )*/
+        )
     }
 
     private fun setupRecyclerView() {
-        val adapter = RemindersListAdapter {
+        adapterReminders = RemindersListAdapter {
+            Log.d(TAG, "callback $it")
         }
 
-//        setup the recycler view using the extension function
-        binding.remindersRecyclerView.setup(adapter)
+        binding.remindersRecyclerView.setup(adapterReminders)
+
+        val itemTouchCallback = ItemTouchHelper(reminderListItemTouchCallback)
+        itemTouchCallback.attachToRecyclerView(binding.remindersRecyclerView)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        Log.d("RemindersActivity", "onOptionsItemSelected called")
         when (item.itemId) {
             R.id.logout -> {
                 Log.d(TAG, "Logging out")
@@ -192,9 +165,44 @@ class ReminderListFragment : BaseFragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-//        display logout as menu item
+
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    private var reminderListItemTouchCallback: ItemTouchHelper.SimpleCallback =
+        object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, swipeDir: Int) {
+                val position = viewHolder.adapterPosition
+                val reminder = adapterReminders.getItem(position)
+
+                _viewModel.deleteReminder(reminder.id)
+
+                Snackbar.make(
+                    binding.root,
+                    requireContext().getString(R.string.restore_reminder),
+                    Snackbar.LENGTH_LONG
+                ).apply {
+                    setAction(R.string.undo) {
+                        restoreDeletedReminder(reminder)
+                    }
+
+                    show()
+                }
+            }
+        }
+
+    private fun restoreDeletedReminder(deletedReminder: ReminderDataItem) {
+        _viewModel.restoreDeletedReminder(deletedReminder)
     }
 }
 
-    private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
+private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29

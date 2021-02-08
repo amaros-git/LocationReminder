@@ -24,7 +24,6 @@ import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-//Medium Test to test the repository
 @MediumTest
 class RemindersLocalRepositoryTest {
 
@@ -56,7 +55,7 @@ class RemindersLocalRepositoryTest {
     // runBlocking is used here because of https://github.com/Kotlin/kotlinx.coroutines/issues/1204
     // TODO: Replace with runBlockingTest once issue is resolved
     @Test
-    fun getReminders_saveRemindersAndGetThemSuccessfully() = runBlocking {
+    fun getReminders_saveRemindersAndGetSuccessfully() = runBlocking {
 
         //Load test reminders into database
         val savedReminders = loadTestRemindersToDatabase()
@@ -108,7 +107,6 @@ class RemindersLocalRepositoryTest {
         //Verify Result.Error is returned
         assertThat(result, instanceOf(Result.Error::class.java))
     }
-
 
     @Test
     fun deleteAllReminders_deleteAllAndGetSuccessWithEmptyList() = runBlocking {

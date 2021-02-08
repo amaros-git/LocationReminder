@@ -21,7 +21,6 @@ import org.junit.Test
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-//Unit test the DAO
 @SmallTest
 class RemindersDaoTest {
 
@@ -46,19 +45,19 @@ class RemindersDaoTest {
      * saveReminder and getReminder(s)
      */
     @Test
-    fun getReminders_SaveAndGetRemindersSuccessfully() = runBlockingTest {
+    fun getReminders_saveAndGetRemindersSuccessfully() = runBlockingTest {
         // Load test reminder to the database
         val savedReminders = loadTestRemindersToDatabase()
 
         //Then get reminders from the database
         val loadedReminders = database.reminderDao().getReminders()
 
-        //Verify count is the same
+        //Verify the count is the same
         assertThat(savedReminders.size, `is`(loadedReminders.size))
     }
 
     @Test
-    fun getReminderById_SaveAndGetReminderSuccessfully() = runBlockingTest {
+    fun getReminderById_saveAndGetReminderSuccessfully() = runBlockingTest {
         // Load test reminder to the database
         val testReminder1 = ReminderDTO(
             "Title1", "Description1", "Location1",
@@ -78,7 +77,7 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun deleteAllReminders_saveRemindersThenDeleteAndGetEmpty() = runBlockingTest {
+    fun deleteAllReminders_saveRemindersThenDeleteAllAndGetEmpty() = runBlockingTest {
         // Load test reminders to the database
         loadTestRemindersToDatabase()
 
@@ -93,7 +92,7 @@ class RemindersDaoTest {
     }
 
     @Test
-    fun deleteReminder_addDeleteAndTryToGet() = runBlockingTest {
+    fun deleteReminder_addReminderDeleteAndTryGet() = runBlockingTest {
         //load reminder to the database
         val savedReminder = ReminderDTO(
             "Title1", "Description1", "Location1",
@@ -109,10 +108,7 @@ class RemindersDaoTest {
 
         //Verify null is returned if you try to get deleted reminder
         assertThat(loadedReminder, nullValue())
-
     }
-
-
 
     private fun loadTestRemindersToDatabase(): List<ReminderDTO> {
         val reminder1 = ReminderDTO(

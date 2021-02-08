@@ -75,12 +75,20 @@ class SaveReminderViewModelTest {
 
     @Test
     fun validateEnteredData_reminderContainsError() {
-        //when reminder contains any error
+        //when reminder contains error
         val reminderLocationNull = ReminderDataItem("Title", "Description", null, 1.0, 1.0)
         val reminderTitleEmpty = ReminderDataItem("", "Description", "Location", 1.0, 1.0)
 
-        //verify should return false
+        //verify error type and false return if location is empty
         assertThat(viewModel.validateEnteredData(reminderLocationNull), `is`(false))
+        val errorLocation =
+            ApplicationProvider.getApplicationContext<Application>().getString(R.string.err_select_location)
+        assertThat(viewModel.showErrorMessage.getOrAwaitValue(), `is`(errorLocation))
+
+        //verify error type and false return if title is empty
         assertThat(viewModel.validateEnteredData(reminderTitleEmpty), `is`(false))
+        val errorTitle =
+            ApplicationProvider.getApplicationContext<Application>().getString(R.string.err_enter_title)
+        assertThat(viewModel.showErrorMessage.getOrAwaitValue(), `is`(errorTitle))
     }
 }

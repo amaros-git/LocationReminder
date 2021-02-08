@@ -42,10 +42,8 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         fun newIntent(context: Context, result: Result<ArrayList<ReminderDataItem>>): Intent {
             val intent = Intent(context, ReminderDescriptionActivity::class.java)
             if (result is Result.Success) {
-                Log.d("OPA", "success)")
                 intent.putParcelableArrayListExtra(EXTRA_ListOfReminderDataItem, result.data)
             } else {
-                Log.d("OPA", "error)")
                 intent.putExtra(EXTRA_GeofenceError, (result as Result.Error).message)
             }
             return intent
@@ -66,7 +64,6 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         //check if we have geofence error
         val geofenceError = intent.extras?.get(EXTRA_GeofenceError) as String?
         geofenceError?.let {
-            Log.d(TAG, "Error")
             showError(it)
         }
 
@@ -84,23 +81,15 @@ class ReminderDescriptionActivity : AppCompatActivity() {
     }
 
     /**
-     * Created custom Card View, fills with data and sets onClick listeners
+     * Creates custom Card View, fills with data and sets onClick listeners
      * for views show map and remove reminder
      */
     private fun showReminders(reminders: ArrayList<ReminderDataItem>) {
         for (i: Int in reminders.indices) {
-            val view = ReminderDetailsView(applicationContext)
-            view.findViewById<TextView>(R.id.title).text = reminders[i].title
-            view.findViewById<TextView>(R.id.description).text = reminders[i].description
-            view.findViewById<TextView>(R.id.location).text = reminders[i].location
+            val view = createReminderView(reminders[i])
 
             view.findViewById<TextView>(R.id.RemoveReminderButton).setOnClickListener {
-                CoroutineScope(coroutineContext).launch(coroutineJob) {
-                    val id = reminders[i].id
-                    repository.deleteReminder(id)
-                    val geofenceClient = GeofenceClient(application)
-                    geofenceClient.removeGeofences(listOf(id))
-                }
+                removeReminder(reminders[i].id)
                 view.fadeOut() //remove reminder view
             }
 
@@ -113,10 +102,25 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         }
     }
 
+    private fun createReminderView(reminder: ReminderDataItem) =
+        ReminderDetailsView(applicationContext).apply {
+            findViewById<TextView>(R.id.title).text = reminder.title
+            findViewById<TextView>(R.id.description).text = reminder.description
+            findViewById<TextView>(R.id.location).text = reminder.location
+        }
+
+
+    private fun removeReminder(reminderId: String) {
+        CoroutineScope(coroutineContext).launch {
+            repository.deleteReminder(reminderId)
+            val geofenceClient = GeofenceClient(application)
+            geofenceClient.removeGeofences(listOf(reminderId))
+        }
+    }
+
     private fun showError(error: String) {
         Toast.makeText(applicationContext, error, Toast.LENGTH_LONG).show()
     }
-
 
     override fun onDestroy() {
         super.onDestroy()

@@ -84,8 +84,8 @@ class GeofenceClient (private val application: Application) {
         }
     }
 
-    fun removeGeofences(geofences: List<String>) {
-        geofencingClient.removeGeofences(geofences)?.run {
+    fun removeGeofences(geofenceRequestIds: List<String>) {
+        geofencingClient.removeGeofences(geofenceRequestIds)?.run {
             addOnSuccessListener {
                 Log.d(TAG, "Successfully removed all geofences")
             }

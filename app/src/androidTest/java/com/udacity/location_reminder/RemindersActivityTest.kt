@@ -44,6 +44,7 @@ import java.lang.Thread.sleep
 @LargeTest
 //END TO END test to black box test the app
 class RemindersActivityTest :
+
     AutoCloseKoinTest() {// Extended Koin Test - embed autoclose @after method to close Koin after every test
 
     private lateinit var repository: ReminderDataSource
@@ -57,6 +58,7 @@ class RemindersActivityTest :
     @Before
     fun init() {
         stopKoin()//stop the original app koin
+
         appContext = getApplicationContext()
         val myModule = module {
             viewModel {
@@ -74,6 +76,7 @@ class RemindersActivityTest :
             single { RemindersLocalRepository(get()) as ReminderDataSource }
             single { LocalDB.createRemindersDao(appContext) }
         }
+
         //declare a new koin module
         startKoin {
             modules(listOf(myModule))
@@ -106,8 +109,11 @@ class RemindersActivityTest :
         IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
     }
 
+    /**
+     * Big tests which check addition and deletion of reminder and all related steps
+     */
     @Test
-    fun addNewReminder() {
+    fun addAndDeleteReminder() {
         //On the start repository must be empty.
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
 
@@ -132,19 +138,26 @@ class RemindersActivityTest :
         onView(withId(R.id.save_location_button)).perform(click())
 
         //Enter title and description
-        onView(withId(R.id.reminderTitle)).perform(typeText("Title1"))
+        val title = "Title1"
+        val description = "Description1"
+        onView(withId(R.id.reminderTitle)).perform(typeText(title))
         onView(withId(R.id.reminderDescription))
-            .perform(typeText("Description1"))
+            .perform(typeText(description))
             .perform(closeSoftKeyboard());
 
         //Save reminder
         onView(withId(R.id.saveReminder)).perform(click())
 
         //Verify title and description in Recycler view
-        onView(withText("Title1")).check(matches(isDisplayed()))
-        onView(withText("Description1")).check(matches(isDisplayed()))
+        onView(withText(title)).check(matches(isDisplayed()))
+        onView(withText(description)).check(matches(isDisplayed()))
+
+        //swipe left to delete
+        onView(withText(title)).perform(swipeLeft())
+
+        //check no data is displayed because there was only one reminder
+        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
 
         activityScenario.close()
     }
-
 }
