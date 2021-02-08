@@ -1,6 +1,7 @@
 package com.udacity.location_reminder.locationreminders.savereminder
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -63,6 +64,7 @@ class SaveReminderFragment : BaseFragment() {
 
         binding.lifecycleOwner = this
         binding.selectLocation.setOnClickListener {
+            checkPermissionsAndRequestIfMissing()
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
@@ -95,7 +97,7 @@ class SaveReminderFragment : BaseFragment() {
 
     override fun onStart() {
         super.onStart()
-        checkPermissionsAndRequestIfMissing()
+
     }
 
     override fun onDestroy() {
@@ -106,12 +108,13 @@ class SaveReminderFragment : BaseFragment() {
         snackBarGoToSettings?.dismiss()
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun checkPermissionsAndRequestIfMissing() {
         if (!isForegroundLocationPermissionAllowed()) {
             requestForegroundLocationPermission()
-        } else if (!isBackgroundLocationPermissionAllowed()) {
-            requestBackgroundLocationPermission()
+        } else if (runningQOrLater) {
+            if(!isBackgroundLocationPermissionAllowed()) {
+                requestBackgroundLocationPermission()
+            }
         }
     }
 
@@ -120,7 +123,7 @@ class SaveReminderFragment : BaseFragment() {
             requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
         )
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+    @SuppressLint("InlinedApi")
     private fun isBackgroundLocationPermissionAllowed(): Boolean {
         return if (runningQOrLater) {
             PackageManager.PERMISSION_GRANTED == checkSelfPermission(
@@ -132,18 +135,21 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     private fun requestForegroundLocationPermission() {
+
         requestPermissions(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
             REQUEST_FOREGROUND_PERMISSION_REQUEST_CODE
         )
     }
 
-    @TargetApi(29)
+    @SuppressLint("InlinedApi")
     private fun requestBackgroundLocationPermission() {
-        requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-            REQUEST_BACKGROUND_PERMISSION_REQUEST_CODE
-        )
+        if (runningQOrLater) {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                REQUEST_BACKGROUND_PERMISSION_REQUEST_CODE
+            )
+        }
     }
 
     //On Android 10+ (Q) toi use geofences we need to have the background permission as well.
@@ -192,7 +198,7 @@ class SaveReminderFragment : BaseFragment() {
     private fun showToastWithSettingsAction(
         view: View,
         textRId: Int,
-        length: Int = Snackbar.LENGTH_INDEFINITE
+        length: Int = Snackbar.LENGTH_LONG
     ): Snackbar {
         return Snackbar.make(view, textRId, length).apply {
             setAction(R.string.settings) {
