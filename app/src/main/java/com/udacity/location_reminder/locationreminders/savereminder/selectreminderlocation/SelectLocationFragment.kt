@@ -3,6 +3,7 @@ package com.udacity.location_reminder.locationreminders.savereminder.selectremin
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -95,6 +96,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
     }
 
 
+    @SuppressLint("NewApi")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -112,7 +114,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
 
         binding.saveLocationButton.setOnClickListener {
             if (null == selectedLocationLatLng) {
@@ -197,8 +198,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun requestBackGroundLocationPermission() {
-        startForBackgroundLocationPermissionResult
-            .launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+            Log.d(TAG, "shouldShowRequestPermissionRationale")
+            val builder = AlertDialog.Builder(requireContext()).apply {
+                setTitle("This app needs background location access")
+                setMessage("Please grant \"Allow all the time\" location permission so this app can track your reminders and send notifications")
+                setPositiveButton(android.R.string.ok, null)
+                setOnDismissListener {
+                    startForBackgroundLocationPermissionResult
+                        .launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                }
+            }.show()
+        } else {
+            startForBackgroundLocationPermissionResult
+                .launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
     }
 
 
