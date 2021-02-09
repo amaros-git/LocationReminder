@@ -19,6 +19,10 @@ private const val GEOFENCE_RADIUS_IN_METERS = 100f
 
 class GeofenceClient (private val application: Application) {
 
+    companion object {
+        const val ACTION_GEOFENCE_EVENT = "LocationReminder.action.ACTION_GEOFENCE_ACTION"
+    }
+
     private val TAG = GeofenceClient::class.java.simpleName
 
     private val geofencingClient: GeofencingClient =
@@ -27,7 +31,7 @@ class GeofenceClient (private val application: Application) {
     // A PendingIntent for the Broadcast Receiver that handles geofence transitions.
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(application, GeofenceBroadcastReceiver::class.java)
-        intent.action = SaveReminderFragment.ACTION_GEOFENCE_EVENT
+        intent.action = ACTION_GEOFENCE_EVENT
         // Use FLAG_UPDATE_CURRENT so that you get the same pending intent back when calling
         // addGeofences() and removeGeofences().
         PendingIntent.getBroadcast(application, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)

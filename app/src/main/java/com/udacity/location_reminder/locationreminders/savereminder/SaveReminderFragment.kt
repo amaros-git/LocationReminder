@@ -1,23 +1,10 @@
 package com.udacity.location_reminder.locationreminders.savereminder
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.annotation.TargetApi
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.databinding.DataBindingUtil
-import com.google.android.material.snackbar.Snackbar
-import com.udacity.location_reminder.BuildConfig
 import com.udacity.location_reminder.R
 import com.udacity.location_reminder.base.BaseFragment
 import com.udacity.location_reminder.base.NavigationCommand
@@ -93,12 +80,6 @@ class SaveReminderFragment : BaseFragment() {
 
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
-    }
-
-
-    companion object {
-        internal const val ACTION_GEOFENCE_EVENT =
-            "LocationReminder.action.ACTION_GEOFENCE_EVENT"
     }
 }
 

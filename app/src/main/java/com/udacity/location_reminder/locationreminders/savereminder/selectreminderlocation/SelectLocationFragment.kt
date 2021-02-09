@@ -125,6 +125,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         return binding.root
     }
 
+    @SuppressLint("NewApi")
+    override fun onStart() {
+        super.onStart()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         locationManager.removeUpdates(this)

@@ -5,14 +5,11 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.JobIntentService
 import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
-import com.udacity.location_reminder.R
 import com.udacity.location_reminder.locationreminders.data.ReminderDataSource
 import com.udacity.location_reminder.locationreminders.data.dto.ReminderDTO
 import com.udacity.location_reminder.locationreminders.data.dto.Result
 import com.udacity.location_reminder.locationreminders.reminderslist.ReminderDataItem
-import com.udacity.location_reminder.locationreminders.savereminder.SaveReminderFragment.Companion.ACTION_GEOFENCE_EVENT
 import com.udacity.location_reminder.utils.sendNotification
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
@@ -40,7 +37,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     override fun onHandleWork(intent: Intent) {
-        if (intent.action == ACTION_GEOFENCE_EVENT) {
+        if (intent.action == GeofenceClient.ACTION_GEOFENCE_EVENT) {
             val geofencingEvent = GeofencingEvent.fromIntent(intent)
 
             val geofenceError =
