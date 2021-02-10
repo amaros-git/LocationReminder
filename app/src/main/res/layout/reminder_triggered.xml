@@ -14,6 +14,8 @@
         android:id="@+id/reminderCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/white"
+        app:cardBackgroundColor="@color/white"
         android:layout_margin="@dimen/padding_medium"
         android:fadeVisible="@{true}">
 
