@@ -317,6 +317,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         }
     }
 
+    private fun validateSelectedLocation() =
+        if (null == selectedLocationLatLng) {
+            _viewModel.showToast.value = "Please select location"
+            false
+        } else {
+            true
+        }
+
     override fun onLocationChanged(location: Location) {
         val latLng = LatLng(location.latitude, location.longitude)
         val zoomLevel = 12.0f
@@ -326,11 +334,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback, LocationListe
         locationManager.removeUpdates(this)
     }
 
-    private fun validateSelectedLocation(): Boolean {
-        if (null == selectedLocationLatLng) {
-            _viewModel.showToast.value = "Please select location"
-            return false
-        }
-        return true
+    /**
+     * This method is deprecated in Q+. But on API 25 it crashes if you do not implement it
+     */
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        Log.d(TAG, "onStatusChanged called")
     }
+
+    override fun onProviderEnabled(provider: String) {
+        Log.d(TAG, "onProviderEnabled called")
+    }
+
+    override fun onProviderDisabled(provider: String) {
+        Log.d(TAG, "onProviderDisabled called")
+    }
+
 }

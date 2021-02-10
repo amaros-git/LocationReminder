@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!--The BACKGROUND_LOCATION permission is required for geofencing functionality to work on Q+ -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!--The WAKE_LOCK permission is required for geofencing functionality to work on API 25 at least -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
 
     <application
         android:name="com.udacity.location_reminder.MyApp"
