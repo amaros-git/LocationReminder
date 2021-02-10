@@ -25,12 +25,18 @@
             <TextView
                 android:id="@+id/title"
                 style="@style/RegularTextStyleBlack"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/padding_small"
-                android:layout_marginLeft="@dimen/padding_small"
+                android:layout_marginStart="@dimen/margin_tiny"
+                android:layout_marginLeft="@dimen/margin_tiny"
+                android:layout_marginEnd="@dimen/margin_tiny"
+                android:layout_marginRight="@dimen/margin_tiny"
+                android:layout_marginBottom="@dimen/margin_tiny"
+                android:gravity="start"
                 android:text="@{item.title}"
+                android:textAlignment="textStart"
                 android:textColor="@color/black"
+                app:layout_constraintEnd_toStartOf="@+id/location"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Title" />
@@ -38,28 +44,36 @@
             <TextView
                 android:id="@+id/description"
                 style="@style/RegularTextStyleLight"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="start"
                 android:text="@{item.description}"
-                app:layout_constraintStart_toStartOf="@id/title"
+                android:textAlignment="textStart"
+                app:layout_constraintEnd_toEndOf="@+id/title"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/title"
                 app:layout_constraintTop_toBottomOf="@id/title"
                 tools:text="Description" />
 
             <TextView
                 android:id="@+id/location"
                 style="@style/RegularTextStyle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/padding_small"
-                android:layout_marginRight="@dimen/padding_small"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:layout_marginEnd="@dimen/margin_tiny"
+                android:layout_marginRight="@dimen/margin_tiny"
                 android:gravity="center"
                 android:text="@{item.location}"
+                android:textAlignment="center"
                 app:layout_constraintBottom_toBottomOf="@+id/description"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/title"
                 tools:text="Location" />
 
             <TextView
+                style="@style/ViewButtonTextStyle"
                 android:id="@+id/RemoveReminderButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -69,16 +83,13 @@
                 android:layout_marginBottom="@dimen/margin_tiny"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="@dimen/padding_tiny"
                 android:text="@string/remove_button_text"
-                android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/text_size_medium"
-                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/description" />
 
             <TextView
+                style="@style/ViewButtonTextStyle"
                 android:id="@+id/showOnMapButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -88,9 +99,6 @@
                 android:focusable="true"
                 android:padding="@dimen/padding_small"
                 android:text="@string/show_on_map_button"
-                android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/text_size_medium"
-                android:textStyle="bold"
                 app:layout_constraintBaseline_toBaselineOf="@+id/RemoveReminderButton"
                 app:layout_constraintEnd_toEndOf="parent" />
 
