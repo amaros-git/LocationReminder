@@ -186,17 +186,7 @@ class ReminderListFragment : BaseFragment() {
 
                 _viewModel.deleteReminder(reminder.id)
 
-                Snackbar.make(
-                    binding.root,
-                    requireContext().getString(R.string.restore_reminder),
-                    Snackbar.LENGTH_LONG
-                ).apply {
-                    setAction(R.string.undo) {
-                        restoreDeletedReminder(reminder)
-                    }
 
-                    show()
-                }
             }
         }
 
